@@ -41,7 +41,115 @@
       color: #FFD700;
     }
 
-    
+    h1 a:hover {
+      color: #ffb347;
+      text-shadow: 0 0 20px #ffb347;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: #d9c9ff;
+      margin: 20px 0;
+    }
+
+    table a {
+      color: #ffb7c5;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: 500;
+      padding: 8px 20px;
+      border-radius: 10px;
+      background: rgba(255, 200, 220, 0.1);
+      transition: 0.3s;
+      display: inline-block;
+    }
+
+    table a:hover {
+      background: rgba(255, 200, 220, 0.2);
+      border-color: #ffb7c5;
+      color: #ffd9e0;
+      transform: translatey(-3px);
+      box-shadow: 0 10px 20px -8px rgba(255, 150, 200, 0.4);
+    }
+
+    hr {
+      border: none;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #b380ff, #ff99cc, #b380ff, transparent);
+      width: 80%;
+      margin: 25px auto;
+      border-radius: 10px;
+    }
+
+    section h1 {
+      font-size: 2.2rem;
+      color: #e6ccff;
+      border-left: 6px solid #b380ff;
+      margin: 40px 0 20px;
+      padding-left: 20px;
+      text-align: left;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 15px;
+      width: 100%;
+    }
+
+    td {
+      background: rgba(30, 10, 40, 0.5);
+      border-radius: 20px;
+      padding: 20px 15px;
+      vertical-align: top;
+      transition: 0.3s;
+      box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    td:hover {
+      transform: translatey(-10px);
+      background: rgba(40, 15, 55, 0.7);
+      border-color: rgba(200, 150, 255, 0.4);
+      box-shadow: 0 20px 30px -12px #b380ff80;
+    }
+
+    img,
+    video {
+      border-radius: 16px;
+      box-shadow: 0 15px 30px -10px #000000cc;
+      border: 0px solid rgba(255, 200, 240, 0.3);
+      transition: 0.3s;
+      max-width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    img:hover,
+    video:hover {
+      border-color: #ffb7c5;
+      box-shadow: 0 20px 35px -8px #d966ff;
+    }
+
+    a {
+      color: #ffb7c5;
+    }
+
+    h1 a {
+      animation: glow 3s infinite;
+    }
+
+    b {
+      display: block;
+      margin-top: 15px;
+      font-size: 1rem;
+      color: #ffd9e6;
+      font-weight: 500;
+      line-height: 1.5;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 10px;
+      border-radius: 30px;
+      border-left: 3px solid #ff99cc;
+      text-align: center;
+    }
   </style>
 
 </head>
@@ -49,7 +157,7 @@
 <body>
 
   <center>
-    <h1><a href="https://open.spotify.com/track/1MktoCajNe06y8bKWXYLys"> Minha Preta</a>
+    <h1><a href="https://open.spotify.com/track/1MktoCajNe06y8bKWXYLys"> 🌹 Minha Preta</a>
     </h1>
     <p><i> Vulgo Maria Isabel. </i> </p>
     <hr>
@@ -57,121 +165,255 @@
     <p> Meu amor, separei nossos melhores momentos nesse sitezinho simples pra krai (to aprendendendo ainda né porra)
     </p>
 
-    <table align="center" width="80%" cellpading="10">
-      <tr align="center">
-        <td><a href="#conversas"> Conversas Favoritas</a></td>
-        <td><a href="#fotos"> Fotos Favoritas</a></td>
-        <td><a href="#musicas"> Nossas Músicas</a></td>
-      </tr>
-    </table>
+    <nav>
+      <table align="center" width="80%" cellpading="10">
+        <tr align="center">
+          <td><a href="#conversas"> Conversas Favoritas</a></td>
+          <td><a href="#fotos"> Fotos Favoritas</a></td>
+          <td><a href="#musicas"> Nossas Músicas</a></td>
+        </tr>
+      </table>
+    </nav>
 
     <section id="fotos">
 
-      <h1> Nossas Melhores Fotos!
+      <h1> Nossas Melhores Fotos! </h1>
 
-        <table align="center" cellpadding="15" width="90%">
 
-          <!-- Primeira Linha-->
-          <tr align="center">
-            <td width="33%">
-              <img
-                src="https://lh3.googleusercontent.com/pw/AP1GczN3k7OIwWnDiFcqDIZwt2m_aex19_5z-PME1TloKS-eSvmJKhnjmiTz1KRlh2JUD7n4So8uif2GhFW7ODGB439MOHef_vAHTAiOJB-re03X7lLWlrp7kn01PsYalaKi3TQtcHe5EeQaVQ4ymzW5UQKghQ=w587-h783-s-no-gm?authuser=0"
-                alt="Essa é a primeira foto sua na minha galeria, acredita?" width=320 height=490
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
-              <br>
-              <b> Essa é a primeira foto sua na minha galeria, acredita? </b>
-              </br>
-            </td>
+      <table align="center" cellpadding="15" width="90%">
 
-            <td width="33%">
-              <img
-                src="https://lh3.googleusercontent.com/pw/AP1GczOvHSY3SFs-Q1gbjTrmO4cCwFCbu7LsQWRx_BT-cLk34aX9LGkzr1PVvjBEVMSLLp4YaxV9lzbK9tsWlpgLPFEaztpoT3T1PzfNIkWYjW2FzaOqPoXM4JNq4rxvG-pu6TmfnkE9DVOEdSfwTYuOrEi5og=w440-h783-s-no-gm?authuser=0"
-                alt="Você pintou seu nome na minha mão pela primeira vez." width=300 height=490
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
-              <br>
-              <b> Você pintou seu nome na minha mão pela primeira vez. </b>
-              </br>
-            </td>
+        <!-- Primeira Linha-->
+        <tr align="center">
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczN3k7OIwWnDiFcqDIZwt2m_aex19_5z-PME1TloKS-eSvmJKhnjmiTz1KRlh2JUD7n4So8uif2GhFW7ODGB439MOHef_vAHTAiOJB-re03X7lLWlrp7kn01PsYalaKi3TQtcHe5EeQaVQ4ymzW5UQKghQ=w587-h783-s-no-gm?authuser=0"
+              alt="Essa é a primeira foto sua na minha galeria, acredita?" width=320 height=490
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Essa é a primeira foto sua na minha galeria, acredita? </b>
+            </br>
+          </td>
 
-            <td width="33%">
-              <video src="primeiro_video.mp4" controls width="280"
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
-              <br>
-              <b> Esse é o nosso primeiro vídeo juntos. Foi nesse dia que eu desisti de te amar. </b>
-              </b r>
-            </td>
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczOvHSY3SFs-Q1gbjTrmO4cCwFCbu7LsQWRx_BT-cLk34aX9LGkzr1PVvjBEVMSLLp4YaxV9lzbK9tsWlpgLPFEaztpoT3T1PzfNIkWYjW2FzaOqPoXM4JNq4rxvG-pu6TmfnkE9DVOEdSfwTYuOrEi5og=w440-h783-s-no-gm?authuser=0"
+              alt="Você pintou seu nome na minha mão pela primeira vez." width=300 height=490
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Você pintou seu nome na minha mão pela primeira vez. </b>
+            </br>
+          </td>
 
-          </tr>
+          <td width="33%">
+            <video src="primeiro_video.mp4" controls width="280"
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
+            <br>
+            <b> Esse é o nosso primeiro vídeo juntos. Foi nesse dia que eu desisti de te amar. </b>
+            </b r>
+          </td>
 
-          <!-- Segunda Linha-->
-          <tr align="center">
-            <td width="33%">
+        </tr>
 
-              <video src="segundo_video.mp4" controls width="280"
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
-              <br>
-              <b> Nesse dia, eu percebi que eu sempre te amaria, não importava o que acontecesse. </b>
-              </br>
-            </td>
+        <!-- Segunda Linha-->
+        <tr align="center">
+          <td width="33%">
 
-            <td width="33%">
-              <img
-                src="https://lh3.googleusercontent.com/pw/AP1GczN14xQL6-WenYsnSlTrBnysEy7ZVSGgOrrUJoz5WK144SFYbqHfChxRUFyjc8sOvbpdhpsQZja9STw-NKYM-3p9GSlZkB5d-OduMJHwd5R9HPfjAocE34muuZvZKsHxQ0lXmfnErOtd46nXBAPGvZPrQw=w587-h783-s-no-gm?authuser=0"
-                alt="Você pintou seu nome na minha mão pela primeira vez." width=320 height=490
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
-              <br>
-              <b> Aqui, a gente decidiu que iríamos namorar pra valer. </b>
-              </br>
-            </td>
+            <video src="segundo_video.mp4" controls width="280"
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
+            <br>
+            <b> Nesse dia, eu percebi que eu sempre te amaria, não importava o que acontecesse. </b>
+            </br>
+          </td>
 
-            <td width="33%">
-              <video src="terceiro_video.mp4" controls width="280"
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
-              <br>
-              <b> Foi com esse vídeo que nós assumimos o namoro. </b>
-              </br>
-            </td>
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczN14xQL6-WenYsnSlTrBnysEy7ZVSGgOrrUJoz5WK144SFYbqHfChxRUFyjc8sOvbpdhpsQZja9STw-NKYM-3p9GSlZkB5d-OduMJHwd5R9HPfjAocE34muuZvZKsHxQ0lXmfnErOtd46nXBAPGvZPrQw=w587-h783-s-no-gm?authuser=0"
+              alt="Você pintou seu nome na minha mão pela primeira vez." width=320 height=490
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Aqui, a gente decidiu que iríamos namorar pra valer. </b>
+            </br>
+          </td>
 
-          </tr>
+          <td width="33%">
+            <video src="terceiro_video.mp4" controls width="280"
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
+            <br>
+            <b> Foi com esse vídeo que nós assumimos o namoro. </b>
+            </br>
+          </td>
 
-          <!-- Terceira Linha-->
+        </tr>
 
-          <tr align="center">
-            <td width="33%">
-              <img
-                src="https://lh3.googleusercontent.com/pw/AP1GczOcVQrnkhyukSGocwIPFoKIGck9OeMt2NfANCBMUHdHmVwIGphqIcttwxIZmyYBNcBhAud4cFFyvQgXFL7oMxxQTtTl_SLe4XNfp8PtQo1dv4kNbMkDppvah2E829SmQHF52rZ-wpScCIWhdnQfeqBrZA=w587-h783-s-no-gm?authuser=0"
-                alt="Essa é a primeira foto sua na minha galeria, acredita?" width=330 height=490
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
-              <br>
-              <b> Foram as primeiras de muitas flores que eu vou te dar. </b>
-              </br>
-            </td>
+        <!-- Terceira Linha-->
 
-            <td width="33%">
-              <video src="quarto_video.mp4" controls width="280"
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
-              <br>
-              <b> Nesse dia você conheceu a minha família. Ela te amou. </b>
-              </br>
-            </td>
+        <tr align="center">
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczOcVQrnkhyukSGocwIPFoKIGck9OeMt2NfANCBMUHdHmVwIGphqIcttwxIZmyYBNcBhAud4cFFyvQgXFL7oMxxQTtTl_SLe4XNfp8PtQo1dv4kNbMkDppvah2E829SmQHF52rZ-wpScCIWhdnQfeqBrZA=w587-h783-s-no-gm?authuser=0"
+              alt="Essa é a primeira foto sua na minha galeria, acredita?" width=330 height=490
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Foram as primeiras de muitas flores que eu vou te dar. </b>
+            </br>
+          </td>
 
-            <td width="33%">
-              <img
-                src="https://lh3.googleusercontent.com/pw/AP1GczN03NtjtRDLRmz4veIholwDFHiFC2h1B-6EbniU5L7UTlK-xcH1NM_CDBhk9xbRoeyWmlefH8tUQXz7iksFe_xUgRI3JM9g0kp9PCWAp1Apt8g1HFaFtkOs6RoG9r-fwtm3_IBJVv2Tm0WRTK2vAjFFow=w449-h783-s-no-gm?authuser=0"
-                alt="Você pintou seu nome na minha mão pela primeira vez." width=320 height=490
-                style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
-              <br>
-              <b> Estar com você foi o melhor presente que eu poderia ter recebido. </b>
-              </br>
-            </td>
+          <td width="33%">
+            <video src="quarto_video.mp4" controls width="280"
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;"></video>
+            <br>
+            <b> Nesse dia você conheceu a minha família. Ela te amou. </b>
+            </br>
+          </td>
 
-          </tr>
-        </table>
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczN03NtjtRDLRmz4veIholwDFHiFC2h1B-6EbniU5L7UTlK-xcH1NM_CDBhk9xbRoeyWmlefH8tUQXz7iksFe_xUgRI3JM9g0kp9PCWAp1Apt8g1HFaFtkOs6RoG9r-fwtm3_IBJVv2Tm0WRTK2vAjFFow=w449-h783-s-no-gm?authuser=0"
+              alt="Você pintou seu nome na minha mão pela primeira vez." width=320 height=490
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Estar com você foi o melhor presente que eu poderia ter recebido. </b>
+            </br>
+          </td>
+
+        </tr>
+
+        <!-- Quarta Linha -->
+
+        <tr align="center">
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczOTGAekG-IYVMxmqxPAMPl_ISAOHAqz3kLILueVnRlvpzG0_WgEBhpV3A_QH6uiWeaeLUZr4P0QdzVWLH6Y_GbLhHjVSvw0bt-zF1JDRKfSjTQtqdMA9a13-lAFAChMeSSw_KIJ59UvRgFw_W6NfDHhxA=w587-h783-s-no-gm?authuser=0"
+              alt="Essa é a primeira foto sua na minha galeria, acredita?" width=200 height=290
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Esse foi o dia que simbolizou o nosso compromisso um com o outro. </b>
+            </br>
+          </td>
+
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczMCvubtBRZ9zHhpj2Hk4yo9sdmCysS6ga1R3rGDJZT3H5NxtMHBll30l1WUTscZKzUfIOR19DbjMZZU0yKxT7V2Yl9H2W1syWeI7FOGTviYdwRGW_PiSETNhNIiuLdCpRHcKdbU9yZW_UEb9g2X8HIjDg=w587-h783-s-no-gm?authuser=0"
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Com você comigo, o ano começou da melhor forma possível. </b>
+            </br>
+          </td>
+
+          <td width="33%">
+            <img
+              src="https://lh3.googleusercontent.com/pw/AP1GczOdqbUzEc4Ee7Df-sDD1C68LOgK4IiVVRpCzyzJn0WPDK-ZHGjc-9UHQfuWVFefK9eWXtT_VaMrtdaB3sxjm5pAXWIxqa1nl2JrgrIVQePlhUAh1vaHVwQ7UPKA1_i4Yg8HywadBYj7FUyR_GtStr_61w=w587-h783-s-no-gm?authuser=0"
+              alt="Você era linda desde pequena. Eu te amo." width=320 height=490
+              style="border-radius: 10px; box-shadow: 3px 3px 5px #888888;">
+            <br>
+            <b> Você era linda desde pequena. Eu te amo. </b>
+            </br>
+          </td>
+
+        </tr>
+      </table>
 
     </section>
 
     <section id="musicas">
       <h1> Nossas Músicas </h1>
+
+      <table>
+        <!-- Primeira Linha-->
+        <tr align="center">
+          <td>
+            <a href="https://open.spotify.com/intl-pt/album/3KOm7ouLh0kOz6sJ8AdpVI" target="_blank">
+              <img src="babydoll/bandido.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Bandido Não, Malandro!
+            </b>
+          </td>
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/3ohAzHXZkN8tEFF24eBMpB" target="_blank">
+              <img src="babydoll/destino.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Parece Destino.
+            </b>
+          </td>
+
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/1yVTlTjvTZnygnUPSZUlLh" target="_blank">
+              <img src="babydoll/mergulhei.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Mergulhei Nos Seus Olhos.
+            </b>
+          </td>
+        </tr>
+
+        <!-- Segunda Linha -->
+        <tr align="center">
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/7wTP4gE6xRqF2NXYtmsndT?si=486bc7cb18b048e7" target="_blank">
+              <img src="babydoll/yes.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Tell me, Yes or No.
+            </b>
+          </td>
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/4rujrtBbkk65GTtkQZbuhN?si=9d2bc079f45f4f33" target="_blank">
+              <img src="babydoll/complicada.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Complicada & Perfeitinha.
+            </b>
+          </td>
+
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/6iReFZUqV0D4SRluki38LE?si=6d4b146e45f74d76" target="_blank">
+              <img src="babydoll/rosas.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Rosas e Rimas.
+            </b>
+          </td>
+        </tr>
+        <!-- Terceira linha-->
+        <tr align="center">
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/48yfdCj8t8WuoITwpSXRcQ" target="_blank">
+              <img src="babydoll/beyonce.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Beyoncé 2.
+            </b>
+          </td>
+          <td>
+            <a href="https://open.spotify.com/track/4BC7wN4wB688n80AQU9LHv" target="_blank">
+              <img src="babydoll/apostas.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Lances e Apostas.
+            </b>
+          </td>
+
+          <td>
+            <a href="https://open.spotify.com/intl-pt/track/1yVTlTjvTZnygnUPSZUlLh" target="_blank">
+              <img src="babydoll/mergulhei.jpg" width="280" height="280" style="border-radius: 16px;">
+            </a>
+            <br>
+            <b>
+              Mergulhei Nos Seus Olhos.
+            </b>
+          </td>
+        </tr>
+      </table>
 
 
   </center>
