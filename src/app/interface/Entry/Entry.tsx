@@ -1,6 +1,9 @@
+import '@fontsource/fredoka/latin-600.css'
+import '@fontsource/fredoka/latin-700.css'
+
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 
-import cameraCharacter from './assets/hello-kitty-camera.png'
+import entryReference from './assets/entry-reference.png'
 import heartCharacter from './assets/hello-kitty-heart.png'
 import peekingCharacter from './assets/hello-kitty-peeking.png'
 import styles from './Entry.module.css'
@@ -11,8 +14,7 @@ interface EntryProps {
   onComplete: () => void
 }
 
-// Substitua este valor pela data real antes da publicação.
-const EXPECTED_BIRTH_DATE = '01/01/2000'
+const EXPECTED_BIRTH_DATE = '08/11/2009'
 
 const EXIT_TIMING = {
   success: 650,
@@ -24,12 +26,12 @@ const CHARACTER_BY_STATE: Record<
   { src: string; alt: string }
 > = {
   idle: {
-    src: cameraCharacter,
-    alt: 'Hello Kitty segurando uma câmera',
+    src: peekingCharacter,
+    alt: 'Hello Kitty espiando com curiosidade',
   },
   typing: {
-    src: cameraCharacter,
-    alt: 'Hello Kitty segurando uma câmera',
+    src: peekingCharacter,
+    alt: 'Hello Kitty espiando com curiosidade',
   },
   error: {
     src: peekingCharacter,
@@ -134,7 +136,12 @@ export function Entry({ onComplete }: EntryProps) {
       aria-busy={isCompleting}
     >
       <div className={styles.content}>
-        <h1 className={styles.logo}>BABYDOLL</h1>
+        <h1 className={styles.logo}>
+          <span className={styles.srOnly}>BABYDOLL</span>
+          <span className={styles.logoVisual} aria-hidden="true">
+            <img className={styles.logoReference} src={entryReference} alt="" />
+          </span>
+        </h1>
 
         <div className={styles.characterFrame}>
           <img
@@ -158,8 +165,8 @@ export function Entry({ onComplete }: EntryProps) {
             name="birth-date"
             type="text"
             inputMode="numeric"
-            autoComplete="bday"
-            placeholder="DD / MM / AAAA"
+            autoComplete="off"
+            placeholder="DD/MM/AAAA"
             value={answer}
             maxLength={10}
             aria-describedby="entry-feedback"
@@ -171,9 +178,10 @@ export function Entry({ onComplete }: EntryProps) {
           <button
             className={styles.submitButton}
             type="submit"
+            aria-label="Entrar"
             disabled={isCompleting}
           >
-            {isCompleting ? 'abrindo' : 'entrar'}
+            <span aria-hidden="true">→</span>
           </button>
         </form>
 
