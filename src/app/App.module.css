@@ -1,14 +1,5 @@
-.temporaryStage {
-  display: grid;
+.finishedStage {
   width: 100%;
   min-height: 100dvh;
-  margin: 0;
-  place-items: center;
-  color: #fff8fd;
-  background: #18032b;
-  font-family: system-ui, sans-serif;
-}
-
-.temporaryStage p {
-  margin: 0;
+  background: #050008;
 }

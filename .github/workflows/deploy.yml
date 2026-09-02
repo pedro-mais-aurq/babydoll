@@ -37,10 +37,23 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Unit tests
+        run: npm run test:unit
+
       - name: Responsive tests
         run: npm run test:responsive
 
+      - name: Cinematic tests
+        run: npm run test:cinematic
+
       - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_TODAY_IMAGE_1_ID: ${{ vars.VITE_TODAY_IMAGE_1_ID }}
+          VITE_TODAY_IMAGE_2_ID: ${{ vars.VITE_TODAY_IMAGE_2_ID }}
+          VITE_TODAY_IMAGE_3_ID: ${{ vars.VITE_TODAY_IMAGE_3_ID }}
+          VITE_TODAY_IMAGE_4_ID: ${{ vars.VITE_TODAY_IMAGE_4_ID }}
         run: npm run build
 
       - name: Configure GitHub Pages

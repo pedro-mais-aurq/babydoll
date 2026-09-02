@@ -1,22 +1,26 @@
 import { useState } from 'react'
 
+import { TodayCinematic } from '../cinematics/today/TodayCinematic'
+import { CinematicStage } from './interface/CinematicStage/CinematicStage'
 import { Entry } from './interface/Entry/Entry'
 import styles from './App.module.css'
 
-function TemporaryStage() {
-  return (
-    <main className={styles.temporaryStage}>
-      <p>Entrada concluída.</p>
-    </main>
-  )
-}
+type AppPhase = 'entry' | 'cinematic' | 'complete'
 
 export function App() {
-  const [entered, setEntered] = useState(false)
+  const [phase, setPhase] = useState<AppPhase>('entry')
 
-  return entered ? (
-    <TemporaryStage />
-  ) : (
-    <Entry onComplete={() => setEntered(true)} />
+  if (phase === 'entry') {
+    return <Entry onComplete={() => setPhase('cinematic')} />
+  }
+
+  return (
+    <CinematicStage>
+      {phase === 'cinematic' ? (
+        <TodayCinematic onComplete={() => setPhase('complete')} />
+      ) : (
+        <div className={styles.finishedStage} aria-label="Cinemática encerrada" />
+      )}
+    </CinematicStage>
   )
 }

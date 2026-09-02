@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run tests/supabase-content.test.ts tests/supabase-migration.test.ts",
+    "test:unit": "vitest run tests/supabase-content.test.ts tests/supabase-migration.test.ts tests/today-content.test.ts tests/today-cinematic.test.tsx",
     "test:responsive": "playwright test tests/entry.responsive.spec.ts",
+    "test:cinematic": "playwright test tests/today-cinematic.spec.ts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "30.0.1",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
     "vitest": "4.1.11"

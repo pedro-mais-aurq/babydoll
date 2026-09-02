@@ -61,6 +61,8 @@ for (const viewport of viewports) {
     await input.fill('08/11/2009')
     await button.click()
     await expect(page.getByText('claro que você lembrava.')).toBeVisible()
-    await expect(page.getByText('Entrada concluída.')).toBeVisible({ timeout: 3_000 })
+    await expect(page.getByRole('heading', { name: /Nosso primeiro dia 5/ })).toBeVisible({
+      timeout: 3_000,
+    })
   })
 }

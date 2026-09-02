@@ -1,0 +1,8 @@
+.stage {
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  overflow-x: clip;
+  color: #fff8fd;
+  background: #08000e;
+}
