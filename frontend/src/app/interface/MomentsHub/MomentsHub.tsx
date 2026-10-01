@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { HeartGrid } from "./HeartGrid";
 import { HeartReveal } from "./HeartReveal";
-import { moments } from "../../../moments/moments";
+import { isMomentReady, moments } from "../../../moments/moments";
 import styles from "./MomentsHub.module.css";
 
 type HubState = "revealing" | "exploring";
@@ -52,16 +52,27 @@ export function MomentsHub({ onOpenMoment }: MomentsHubProps) {
           footer={
             isExploring ? (
               <div className={styles.momentList}>
-                {moments.map((moment) => (
-                  <button
-                    key={moment.id}
-                    type="button"
-                    className={styles.momentListItem}
-                    onClick={() => handleSelect(moment.id)}
-                  >
-                    {moment.title}
-                  </button>
-                ))}
+                {moments.map((moment) =>
+                  isMomentReady(moment) ? (
+                    <button
+                      key={moment.id}
+                      type="button"
+                      className={styles.momentListItem}
+                      onClick={() => handleSelect(moment.id)}
+                    >
+                      {moment.title}
+                    </button>
+                  ) : (
+                    <span
+                      key={moment.id}
+                      className={`${styles.momentListItem} ${styles.momentListLocked}`}
+                      data-locked="true"
+                    >
+                      {moment.title}
+                      <span className={styles.soon}>em breve</span>
+                    </span>
+                  ),
+                )}
               </div>
             ) : null
           }

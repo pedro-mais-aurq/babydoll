@@ -105,6 +105,38 @@
   cursor: default;
 }
 
+/* Lembrança reservada: presente no coração, discretamente adormecida. */
+.lockedCell {
+  cursor: default;
+  filter: saturate(0.35) brightness(0.62);
+}
+
+.lockBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  color: #ffd9f3;
+  background: rgba(12, 1, 22, 0.72);
+  opacity: calc(1 - clamp(0, calc(var(--reveal) * 2), 1));
+}
+
+.soon {
+  display: block;
+  font-size: 0.82em;
+  letter-spacing: 0.08em;
+  opacity: 0.72;
+}
+
+.momentListLocked {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .interactive {
   cursor: pointer;
   transition:

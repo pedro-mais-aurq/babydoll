@@ -32,6 +32,10 @@ describe("HeartGrid", () => {
   it("não transforma células decorativas em botões", () => {
     render(<HeartGrid isInteractive selectedMomentId={null} onSelect={vi.fn()} />);
 
+    // Duas cinemáticas abríveis; "A próxima lembrança" fica reservada, sem botão.
     expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: /próxima lembrança/i })).toBeNull();
+    expect(screen.getByText(/A próxima lembrança/)).toBeTruthy();
+    expect(screen.getAllByText("em breve").length).toBeGreaterThan(0);
   });
 });

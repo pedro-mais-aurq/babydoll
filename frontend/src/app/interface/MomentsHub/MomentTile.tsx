@@ -1,5 +1,5 @@
 import type { HeartCell } from "./heartLayout";
-import { findMoment } from "../../../moments/moments";
+import { findMoment, isMomentReady } from "../../../moments/moments";
 import styles from "./MomentsHub.module.css";
 
 interface MomentTileProps {
@@ -48,6 +48,27 @@ export function MomentTile({
   }
 
   classes.push(styles.momentCell);
+
+  // Lembrança reservada: aparece no coração, mas não abre rota nenhuma.
+  if (!isMomentReady(moment)) {
+    classes.push(styles.lockedCell);
+
+    return (
+      <div className={classes.join(" ")} data-moment-id={moment.id} data-locked="true">
+        <img className={styles.image} src={moment.cover} alt="" loading="lazy" />
+        <span className={styles.lockBadge} aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor">
+            <rect x="5" y="11" width="14" height="9" rx="2" strokeWidth="2" />
+            <path d="M8 11V8a4 4 0 0 1 8 0v3" strokeWidth="2" />
+          </svg>
+        </span>
+        <span className={styles.momentLabel}>
+          {moment.title}
+          <span className={styles.soon}>em breve</span>
+        </span>
+      </div>
+    );
+  }
 
   if (isInteractive) {
     classes.push(styles.interactive);

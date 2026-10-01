@@ -9,5 +9,11 @@ export interface Moment {
   title: string;
   cover: string;
   coverAlt: string;
-  cinematic: ComponentType<CinematicProps>;
+  /** `null` = lembrança reservada na linha do tempo, ainda não gravada. */
+  cinematic: ComponentType<CinematicProps> | null;
+}
+
+/** Um momento só é abrível quando a cinemática dele existe. */
+export function isMomentReady(moment: Moment): boolean {
+  return moment.cinematic !== null;
 }

@@ -158,11 +158,13 @@
   background-position: 93% 87%;
   background-repeat: no-repeat;
   filter: blur(5px) brightness(0.74) saturate(1.2);
+  /* Topo dissolvido num intervalo largo: nenhuma linha reta perceptível. */
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, 0.45) 12%,
-    #000 24%,
+    rgba(0, 0, 0, 0.22) 14%,
+    rgba(0, 0, 0, 0.72) 30%,
+    #000 44%,
     #000 100%
   );
 }
@@ -178,8 +180,8 @@
   position: absolute;
   left: -6%;
   right: -6%;
-  bottom: calc(var(--fg-h) * 0.72);
-  height: clamp(34px, 9vh, 92px);
+  bottom: calc(var(--fg-h) * 0.56);
+  height: clamp(44px, 12vh, 120px);
   background:
     radial-gradient(46px 34px at 4% 100%, #2a5a23 70%, transparent 72%),
     radial-gradient(82px 56px at 16% 100%, #1e4a1b 70%, transparent 72%),
@@ -189,8 +191,8 @@
     radial-gradient(74px 30px at 67% 100%, #224e1d 70%, transparent 72%),
     radial-gradient(104px 60px at 82% 100%, #1a4216 70%, transparent 72%),
     radial-gradient(48px 30px at 96% 100%, #27551f 70%, transparent 72%);
-  filter: blur(7px) brightness(0.8);
-  opacity: 0.92;
+  filter: blur(9px) brightness(0.82);
+  opacity: 0.88;
 }
 
 /* Fio de luz onde a vegetação encosta no cenário. */
@@ -198,8 +200,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--fg-h) * 0.76);
-  height: 14px;
+  bottom: calc(var(--fg-h) * 0.66);
+  height: 18px;
   background: linear-gradient(to bottom, rgba(236, 240, 214, 0.16), transparent);
   filter: blur(4px);
 }
@@ -273,6 +275,28 @@
   line-height: 1.3;
   font-weight: 600;
   text-wrap: balance;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.52em;
+  height: 1.05em;
+  margin-left: 0.14em;
+  vertical-align: -0.16em;
+  background: currentColor;
+  opacity: 0.55;
+  animation: caretBlink 620ms steps(1, end) infinite;
+}
+
+@keyframes caretBlink {
+  0%,
+  49% {
+    opacity: 0.55;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes bubbleIn {
@@ -467,6 +491,7 @@
   .bubble,
   .indicator,
   .indicator::before,
+  .caret,
   .fragment {
     animation: none;
   }

@@ -27,7 +27,7 @@ describe("heartLayout", () => {
       .filter((cell) => cell.type === "moment")
       .map((cell) => (cell.type === "moment" ? cell.momentId : ""));
 
-    expect(momentIds.length).toBe(2);
+    expect(momentIds.length).toBe(3);
     momentIds.forEach((id) => expect(findMoment(id)).toBeDefined());
   });
 

@@ -25,7 +25,7 @@ describe("fronteiras arquiteturais", () => {
     const ids = moments.map((m) => m.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const m of moments) {
-      expect(typeof m.cinematic).toBe("function");
+      expect(["function", "object"]).toContain(typeof m.cinematic);
       expect(m.cover).toBeTruthy();
     }
     expect(findMoment("desconhecido")).toBeUndefined();

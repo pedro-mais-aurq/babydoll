@@ -182,3 +182,61 @@ describe("As estrelas colidem — diálogo por clique", () => {
     expect(screen.getByTestId("stars-collide-bubble").dataset.speaker).toBe("mabel");
   });
 });
+
+describe("As estrelas colidem — fala datilografada", () => {
+  /** Chega ao encontro por scroll, com movimento ligado (digitação ativa). */
+  async function arriveByScroll() {
+    const root = screen.getByTestId("stars-collide-cinematic");
+    Object.defineProperty(root, "offsetHeight", { value: 3400, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+    root.getBoundingClientRect = () => ({ top: -2600 }) as DOMRect;
+    Object.defineProperty(window, "scrollY", { value: 2600, configurable: true });
+    fireEvent.scroll(window);
+
+    await waitFor(() => expect(root.dataset.phase).toBe("dialogue"));
+  }
+
+  it("revela a fala letra por letra e o blip acompanha o ritmo do texto", async () => {
+    const playSound = vi.fn();
+    render(<AsEstrelasColidem onComplete={vi.fn()} playSound={playSound} />);
+    await arriveByScroll();
+
+    const scene = screen.getByTestId("stars-collide-scene");
+    fireEvent.click(scene);
+
+    const bubble = await waitFor(() => screen.getByTestId("stars-collide-bubble"));
+    expect(bubble.dataset.typing).toBe("true");
+    // O indicador fica escondido enquanto o texto está sendo digitado.
+    expect(screen.queryByTestId("stars-collide-continue-hint")).toBeNull();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("stars-collide-bubble").dataset.typing).toBe("false"),
+    );
+    expect(screen.getByTestId("stars-collide-line").textContent).toContain("Oi");
+
+    // "enter" na entrada da fala e "tick" acompanhando as letras.
+    expect(playSound.mock.calls[0]).toEqual(["pedro", "enter"]);
+    expect(playSound.mock.calls.every(([speaker]) => speaker === "pedro")).toBe(true);
+  });
+
+  it("clicar durante a digitação completa a fala sem avançar o beat", async () => {
+    const playSound = vi.fn();
+    render(<AsEstrelasColidem onComplete={vi.fn()} playSound={playSound} />);
+    await arriveByScroll();
+
+    const scene = screen.getByTestId("stars-collide-scene");
+    // Fala longa: dá tempo de interromper a digitação.
+    for (const text of ["Oi", "Oi", "(pausa)", "Você gosta do Drummond?"]) {
+      fireEvent.click(scene);
+      await wait(360);
+      if (text !== "(pausa)") {
+        fireEvent.click(scene); // completa a digitação, se ainda estiver rolando
+        await wait(60);
+      }
+    }
+
+    expect(screen.getByTestId("stars-collide-line").textContent).toBe("Você gosta do Drummond?");
+    expect(screen.getByTestId("stars-collide-bubble").dataset.typing).toBe("false");
+    expect(screen.getByTestId("stars-collide-bubble").dataset.speaker).toBe("pedro");
+  });
+});

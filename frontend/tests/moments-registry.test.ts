@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { moments } from "../src/moments/moments";
+import { moments, isMomentReady } from "../src/moments/moments";
 import { beats, FINAL_LINE, OUTRO_INDEX } from "../src/cinematics/as-estrelas-colidem/content";
 
 describe("registro de momentos", () => {
@@ -15,6 +15,19 @@ describe("registro de momentos", () => {
     );
   });
 
+  it("reserva a próxima lembrança no fim da linha do tempo, ainda fechada", () => {
+    const last = moments[moments.length - 1];
+
+    expect(last.id).toBe("next-memory");
+    expect(last.cinematic).toBeNull();
+    expect(isMomentReady(last)).toBe(false);
+    // As duas cinemáticas já gravadas continuam abríveis.
+    expect(moments.filter(isMomentReady).map((moment) => moment.id)).toEqual([
+      "stars-collide",
+      "first-day-five",
+    ]);
+  });
+
   it("não expõe mais o título antigo em lugar nenhum visível", () => {
     expect(moments.some((moment) => moment.title === "Nosso primeiro dia 5")).toBe(false);
     expect(readFileSync("src/moments/moments.ts", "utf8")).not.toMatch(/Nosso primeiro dia 5/);
@@ -25,7 +38,11 @@ describe("registro de momentos", () => {
   });
 
   it("preserva os ids internos existentes", () => {
-    expect(moments.map((moment) => moment.id)).toEqual(["stars-collide", "first-day-five"]);
+    expect(moments.map((moment) => moment.id)).toEqual([
+      "stars-collide",
+      "first-day-five",
+      "next-memory",
+    ]);
   });
 });
 

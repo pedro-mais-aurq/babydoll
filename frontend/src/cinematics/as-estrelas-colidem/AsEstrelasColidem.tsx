@@ -4,9 +4,10 @@ import type { CSSProperties } from "react";
 import patio from "./assets/patio.webp";
 import pedroImage from "./assets/pedro.png";
 import mabelImage from "./assets/mabel.png";
+import { playBlip, startPatioAmbience } from "./audio";
+import type { BlipKind } from "./audio";
 import { beats, FADE_FRAGMENTS, FINAL_LINE, OUTRO_INDEX, SPEAKER_NAMES } from "./content";
 import type { Speaker } from "./content";
-import { playBlip } from "./retroBlip";
 import styles from "./styles.module.css";
 
 /**
@@ -21,7 +22,7 @@ type Phase = "approach" | "dialogue" | "outro";
 interface AsEstrelasColidemProps {
   onComplete: () => void;
   /** Injetável só para teste: o padrão é o blip retrô local. */
-  playSound?: (speaker: Speaker) => void;
+  playSound?: (speaker: Speaker, kind?: BlipKind) => void;
 }
 
 const ARRIVAL_THRESHOLD = 0.995;
@@ -32,6 +33,8 @@ const TRANSITION_MS = 260;
 const FRAGMENTS_MS = 4200;
 const FINALE_HOLD_MS = 3400;
 const FINALE_FADE_MS = 1600;
+const TYPE_MS = 34;
+const TICK_EVERY = 3;
 
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
@@ -45,10 +48,76 @@ function smoothstep(value: number): number {
   return value * value * (3 - 2 * value);
 }
 
-export function AsEstrelasColidem({
-  onComplete,
-  playSound = playBlip,
-}: AsEstrelasColidemProps) {
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+/**
+ * Fala datilografada, local à cinemática: revela letra por letra e avisa a cada
+ * poucos caracteres para o blip acompanhar o ritmo do texto. `token` reinicia a
+ * digitação mesmo quando duas falas seguidas têm o mesmo texto (os dois "Oi").
+ */
+function useTypewriter(text: string, token: number, instant: boolean, onTick: () => void) {
+  const [count, setCount] = useState(0);
+  const tickRef = useRef(onTick);
+  const timerRef = useRef<number | null>(null);
+
+  tickRef.current = onTick;
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    stopTimer();
+
+    if (text.length === 0) {
+      setCount(0);
+      return undefined;
+    }
+
+    if (instant) {
+      setCount(text.length);
+      return undefined;
+    }
+
+    setCount(0);
+    let typed = 0;
+    timerRef.current = window.setInterval(() => {
+      typed += 1;
+      setCount(typed);
+
+      if (typed < text.length && typed % TICK_EVERY === 0) {
+        tickRef.current();
+      }
+
+      if (typed >= text.length) {
+        stopTimer();
+      }
+    }, TYPE_MS);
+
+    return stopTimer;
+  }, [instant, stopTimer, text, token]);
+
+  return {
+    typed: text.slice(0, count),
+    isTyping: count < text.length,
+    // Completar precisa parar o intervalo, senão ele sobrescreve a contagem.
+    complete: useCallback(() => {
+      stopTimer();
+      setCount(text.length);
+    }, [stopTimer, text.length]),
+  };
+}
+
+export function AsEstrelasColidem({ onComplete, playSound = playBlip }: AsEstrelasColidemProps) {
   const rootRef = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>("approach");
   const [step, setStep] = useState(-1);
@@ -56,8 +125,29 @@ export function AsEstrelasColidem({
   const [indicatorReady, setIndicatorReady] = useState(false);
   const [fading, setFading] = useState(false);
   const [finaleVisible, setFinaleVisible] = useState(false);
+  const [instantText] = useState(prefersReducedMotion);
   const guardRef = useRef<number | null>(null);
   const busyRef = useRef(false);
+
+  const currentBeat = step >= 0 ? beats[step] : undefined;
+  const line = currentBeat?.kind === "line" ? currentBeat : undefined;
+
+  const typewriter = useTypewriter(
+    line?.text ?? "",
+    step,
+    instantText,
+    useCallback(() => {
+      if (!line) {
+        return;
+      }
+
+      try {
+        playSound(line.speaker, "tick");
+      } catch {
+        // Áudio é aprimoramento: falhar não pode travar a narrativa.
+      }
+    }, [line, playSound]),
+  );
 
   // Abertura: o cenário existe praticamente sozinho antes dos personagens.
   useEffect(() => {
@@ -66,6 +156,17 @@ export function AsEstrelasColidem({
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  // Ambiência do pátio: entra em fade durante a aproximação e silencia no encontro.
+  useEffect(() => {
+    if (phase !== "approach") {
+      return undefined;
+    }
+
+    const ambience = startPatioAmbience();
+
+    return () => ambience.stop();
+  }, [phase]);
 
   // Fase A — a posição de Pedro é o progresso do scroll, escrito direto em CSS vars.
   useEffect(() => {
@@ -114,7 +215,7 @@ export function AsEstrelasColidem({
       }
     };
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersReducedMotion()) {
       // Sem movimento: a aproximação já está feita e o diálogo assume.
       apply(1);
       return undefined;
@@ -163,6 +264,12 @@ export function AsEstrelasColidem({
       return;
     }
 
+    // Clique no meio da digitação completa a fala; o próximo avança o beat.
+    if (typewriter.isTyping) {
+      typewriter.complete();
+      return;
+    }
+
     const next = step + 1;
     const beat = beats[next];
 
@@ -174,7 +281,7 @@ export function AsEstrelasColidem({
     // O som nasce do próprio gesto do usuário (política de autoplay) e nunca na pausa.
     if (beat.kind === "line") {
       try {
-        playSound(beat.speaker);
+        playSound(beat.speaker, "enter");
       } catch {
         // Áudio é aprimoramento: falhar não pode travar a narrativa.
       }
@@ -185,7 +292,7 @@ export function AsEstrelasColidem({
     if (beat.kind === "outro") {
       setPhase("outro");
     }
-  }, [playSound, step]);
+  }, [playSound, step, typewriter]);
 
   useEffect(() => {
     return () => {
@@ -220,7 +327,7 @@ export function AsEstrelasColidem({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [advance, phase]);
 
-  // O indicador se esconde durante transições e durante o silêncio da pausa.
+  // O indicador se esconde durante transições, durante a digitação e na pausa.
   useEffect(() => {
     if (phase !== "dialogue") {
       setIndicatorReady(false);
@@ -228,8 +335,7 @@ export function AsEstrelasColidem({
     }
 
     const beat = step >= 0 ? beats[step] : undefined;
-    const delay =
-      step < 0 ? SETTLE_MS : beat?.kind === "pause" ? PAUSE_SILENCE_MS : TRANSITION_MS;
+    const delay = step < 0 ? SETTLE_MS : beat?.kind === "pause" ? PAUSE_SILENCE_MS : TRANSITION_MS;
 
     setIndicatorReady(false);
     const timer = window.setTimeout(() => setIndicatorReady(true), delay);
@@ -243,8 +349,7 @@ export function AsEstrelasColidem({
       return undefined;
     }
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const scale = reduced ? 0.35 : 1;
+    const scale = prefersReducedMotion() ? 0.35 : 1;
     const timers = [
       window.setTimeout(() => setFading(true), 140),
       window.setTimeout(() => setFinaleVisible(true), FRAGMENTS_MS * scale),
@@ -252,17 +357,12 @@ export function AsEstrelasColidem({
         () => setFinaleVisible(false),
         (FRAGMENTS_MS + FINALE_HOLD_MS + FINALE_FADE_MS) * scale,
       ),
-      window.setTimeout(
-        onComplete,
-        (FRAGMENTS_MS + FINALE_HOLD_MS + FINALE_FADE_MS * 2) * scale,
-      ),
+      window.setTimeout(onComplete, (FRAGMENTS_MS + FINALE_HOLD_MS + FINALE_FADE_MS * 2) * scale),
     ];
 
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [onComplete, phase]);
 
-  const currentBeat = step >= 0 ? beats[step] : undefined;
-  const line = currentBeat?.kind === "line" ? currentBeat : undefined;
   const isInteractive = phase === "dialogue";
 
   return (
@@ -319,7 +419,7 @@ export function AsEstrelasColidem({
         <div className={styles.vignette} aria-hidden="true" />
 
         <div aria-live="polite" className={styles.srOnly}>
-          {line ? `${SPEAKER_NAMES[line.speaker]}: ${line.text}` : ""}
+          {line && !typewriter.isTyping ? `${SPEAKER_NAMES[line.speaker]}: ${line.text}` : ""}
         </div>
 
         {line ? (
@@ -329,11 +429,13 @@ export function AsEstrelasColidem({
               line.speaker === "pedro" ? styles.pedroBubble : styles.mabelBubble
             }`}
             data-speaker={line.speaker}
+            data-typing={typewriter.isTyping}
             data-testid="stars-collide-bubble"
           >
             <span className={styles.speaker}>{SPEAKER_NAMES[line.speaker]}</span>
             <p className={styles.line} data-testid="stars-collide-line">
-              {line.text}
+              {typewriter.typed}
+              {typewriter.isTyping ? <span className={styles.caret} aria-hidden="true" /> : null}
             </p>
           </div>
         ) : null}
@@ -344,7 +446,7 @@ export function AsEstrelasColidem({
           </p>
         ) : null}
 
-        {isInteractive && indicatorReady && step < OUTRO_INDEX ? (
+        {isInteractive && indicatorReady && !typewriter.isTyping && step < OUTRO_INDEX ? (
           <p className={styles.indicator} data-testid="stars-collide-continue-hint">
             clique para continuar
           </p>
