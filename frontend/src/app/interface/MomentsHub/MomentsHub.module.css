@@ -1,0 +1,197 @@
+/* Mantém o fundo da transição nesta tela, sem depender do body. */
+.backdrop {
+  background: #0d0119;
+}
+
+.hub {
+  position: relative;
+  width: 100%;
+  overflow-x: clip;
+  color: #f7e6f6;
+  background: radial-gradient(120% 80% at 50% 0%, #2d0745 0%, #18032b 55%, #0d0119 100%);
+  font-family: "Fredoka", system-ui, sans-serif;
+}
+
+.scrollSpace {
+  height: 340dvh;
+}
+
+.viewport {
+  position: sticky;
+  top: 0;
+  display: grid;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  place-items: center;
+}
+
+.hint {
+  position: absolute;
+  bottom: clamp(1rem, 4dvh, 2.5rem);
+  z-index: 2;
+  margin: 0;
+  color: #d7b3e4;
+  font-size: clamp(0.75rem, 2.6vw, 0.875rem);
+  letter-spacing: 0.18em;
+  text-transform: lowercase;
+  opacity: calc(1 - clamp(0, calc(var(--reveal) * 2.2), 1));
+  transition: opacity 200ms linear;
+  pointer-events: none;
+}
+
+.title {
+  position: absolute;
+  top: clamp(1rem, 4dvh, 2.5rem);
+  z-index: 2;
+  margin: 0;
+  color: #f0c9ea;
+  font-size: clamp(0.8rem, 3vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: clamp(0, calc((var(--reveal) - 0.55) * 3), 1);
+  pointer-events: none;
+}
+
+.grid {
+  display: grid;
+  width: min(92vw, 640px);
+  grid-template-columns: repeat(var(--columns), 1fr);
+  gap: clamp(2px, 0.7vw, 6px);
+  transform: translate(
+      calc((50% - var(--focus-x)) * (1 - var(--reveal))),
+      calc((50% - var(--focus-y)) * (1 - var(--reveal)))
+    )
+    scale(calc(1 + (var(--max-scale) - 1) * (1 - var(--reveal))));
+  transform-origin: var(--focus-x) var(--focus-y);
+  will-change: transform;
+}
+
+.cell {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: none;
+  border-radius: clamp(2px, 0.8vw, 8px);
+  aspect-ratio: 1;
+  background: transparent;
+}
+
+.empty {
+  visibility: hidden;
+}
+
+.filled {
+  opacity: clamp(0, calc((var(--reveal) - 0.15) * 1.9), 1);
+  background: #24073a;
+  box-shadow: 0 0 0 1px rgba(255, 214, 246, 0.08);
+}
+
+.focus {
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(255, 214, 246, 0.22);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.momentCell {
+  cursor: default;
+}
+
+.interactive {
+  cursor: pointer;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+.interactive:hover,
+.interactive:focus-visible {
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 2px #ffb7ec,
+    0 0 26px rgba(255, 141, 224, 0.45);
+  filter: saturate(1.12);
+  outline: none;
+}
+
+.momentLabel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2px 3px;
+  color: #fff3fb;
+  font-size: clamp(5px, 1.1vw, 10px);
+  opacity: calc(1 - clamp(0, calc(var(--reveal) * 2), 1));
+  transition: opacity 200ms ease;
+  line-height: 1.2;
+  text-align: center;
+  background: linear-gradient(to top, rgba(12, 1, 22, 0.88), transparent);
+}
+
+.selected {
+  transform: scale(1.14);
+  box-shadow:
+    0 0 0 2px #ffd0f2,
+    0 0 40px rgba(255, 141, 224, 0.6);
+}
+
+.dimmed {
+  opacity: 0.18;
+  transition: opacity 240ms ease;
+}
+
+.leaving {
+  animation: fadeOut 420ms ease forwards;
+}
+
+.momentList {
+  position: absolute;
+  bottom: clamp(0.75rem, 3dvh, 2rem);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 92vw;
+  gap: 0.5rem;
+  opacity: clamp(0, calc((var(--reveal) - 0.8) * 5), 1);
+}
+
+.momentListItem {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid rgba(255, 183, 236, 0.35);
+  border-radius: 999px;
+  color: #ffe3f8;
+  font-family: inherit;
+  font-size: clamp(0.7rem, 2.6vw, 0.8rem);
+  background: rgba(36, 7, 58, 0.72);
+  cursor: pointer;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid,
+  .interactive {
+    transition: none;
+  }
+}
+
+.interactive:hover .momentLabel,
+.interactive:focus-visible .momentLabel,
+.selected .momentLabel {
+  opacity: 1;
+}

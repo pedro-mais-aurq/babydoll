@@ -1,0 +1,482 @@
+/*
+ * "As estrelas colidem" — estilos locais da cinemática.
+ * Fase A: o scroll da página alimenta --p (progresso da aproximação).
+ * Fase B: nada mais depende de scroll; o diálogo é só clique/toque.
+ */
+
+.cinematic {
+  --travel: 520vh;
+  --p: 0;
+  --bob: 0;
+  --tilt: 0;
+
+  /* Composição responsiva: nada de coordenadas absolutas. */
+  --fg-h: clamp(110px, 19vh, 200px);
+  --lift: clamp(14px, 2.6vh, 34px);
+  --sink: 24%;
+  --ground: calc(var(--fg-h) * 0.64);
+
+  --pedro-from: 13%;
+  --pedro-to: 55%;
+  --pedro-h: clamp(210px, 44vh, 420px);
+  --mabel-x: 72%;
+  --mabel-h: clamp(230px, 48vh, 450px);
+
+  position: relative;
+  width: 100%;
+  height: var(--travel);
+  /* `clip` e não `hidden`: hidden criaria um scroll container e quebraria o sticky da cena. */
+  overflow-x: clip;
+  background: #07050b;
+  font-family: "Fredoka", system-ui, -apple-system, sans-serif;
+  color: #fdf7ff;
+}
+
+.cinematic[data-phase="dialogue"],
+.cinematic[data-phase="outro"] {
+  /* Depois do encontro a página não precisa mais de curso de scroll. */
+  touch-action: none;
+}
+
+.scene {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: opacity 3.4s ease-in;
+}
+
+.scene[data-interactive="true"] {
+  cursor: pointer;
+}
+
+.scene[data-fading="true"] {
+  opacity: 0;
+}
+
+/* ---------- cenário ---------- */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% 62%;
+  transform: scale(1.06);
+  animation: backdropSettle 2600ms ease-out both;
+}
+
+@keyframes backdropSettle {
+  from {
+    transform: scale(1.14);
+    filter: brightness(0.72) saturate(0.82);
+  }
+  to {
+    transform: scale(1.06);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 90% at 50% 40%, transparent 42%, rgba(9, 4, 16, 0.55) 100%),
+    linear-gradient(to bottom, rgba(12, 6, 20, 0.28), transparent 32%, rgba(8, 3, 14, 0.42));
+}
+
+/* ---------- personagens ---------- */
+
+.character {
+  position: absolute;
+  z-index: 4;
+  height: var(--pedro-h);
+  width: auto;
+  transform-origin: bottom center;
+  will-change: transform;
+  filter: drop-shadow(0 18px 26px rgba(6, 3, 12, 0.5));
+  pointer-events: none;
+}
+
+.pedro {
+  left: calc(var(--pedro-from) + (var(--pedro-to) - var(--pedro-from)) * var(--p));
+  bottom: calc(var(--ground) + (1 - var(--p)) * var(--lift));
+  transform: translateX(-50%) scale(calc(0.4 + 0.6 * var(--p))) rotate(calc(var(--tilt) * 1deg))
+    translateY(calc(var(--sink) + var(--bob) * 1px));
+  opacity: 0;
+  transition: opacity 1400ms ease-out;
+}
+
+.mabel {
+  left: var(--mabel-x);
+  bottom: var(--ground);
+  height: var(--mabel-h);
+  z-index: 5;
+  transform: translateX(-50%) translateY(var(--sink));
+  opacity: 0;
+  transition: opacity 1800ms ease-out;
+}
+
+.scene[data-revealed="true"] .pedro,
+.scene[data-revealed="true"] .mabel {
+  opacity: 1;
+}
+
+/*
+ * Primeiro plano: a própria fotografia do pátio, ampliada e desfocada como se
+ * estivesse perto da câmera. É a vegetação/mureta que já existe na cena — os
+ * recortes dos PNGs ficam atrás dela em qualquer escala ou viewport.
+ */
+.foreground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--fg-h);
+  z-index: 6;
+  pointer-events: none;
+}
+
+/*
+ * A massa de vegetação vem da própria fotografia, enquadrada nos arbustos da
+ * direita e ampliada como se estivesse perto da câmera. O topo se dissolve no
+ * cenário (desfoque de profundidade), e a região opaca — bem abaixo do topo —
+ * é o que esconde o recorte dos PNGs em qualquer escala.
+ */
+.foregroundPhoto {
+  position: absolute;
+  inset: 0;
+  background-image: url("./assets/patio.webp");
+  background-size: 380% auto;
+  background-position: 93% 87%;
+  background-repeat: no-repeat;
+  filter: blur(5px) brightness(0.74) saturate(1.2);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.45) 12%,
+    #000 24%,
+    #000 100%
+  );
+}
+
+.foregroundClip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Quebra a linha reta do topo com copas de arbusto da mesma paleta. */
+.foregroundCanopy {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: calc(var(--fg-h) * 0.72);
+  height: clamp(34px, 9vh, 92px);
+  background:
+    radial-gradient(46px 34px at 4% 100%, #2a5a23 70%, transparent 72%),
+    radial-gradient(82px 56px at 16% 100%, #1e4a1b 70%, transparent 72%),
+    radial-gradient(40px 24px at 27% 100%, #30642a 70%, transparent 72%),
+    radial-gradient(96px 48px at 41% 100%, #1b4518 70%, transparent 72%),
+    radial-gradient(54px 38px at 55% 100%, #2b5c24 70%, transparent 72%),
+    radial-gradient(74px 30px at 67% 100%, #224e1d 70%, transparent 72%),
+    radial-gradient(104px 60px at 82% 100%, #1a4216 70%, transparent 72%),
+    radial-gradient(48px 30px at 96% 100%, #27551f 70%, transparent 72%);
+  filter: blur(7px) brightness(0.8);
+  opacity: 0.92;
+}
+
+/* Fio de luz onde a vegetação encosta no cenário. */
+.foregroundRim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--fg-h) * 0.76);
+  height: 14px;
+  background: linear-gradient(to bottom, rgba(236, 240, 214, 0.16), transparent);
+  filter: blur(4px);
+}
+
+/* ---------- falas ---------- */
+
+.bubble {
+  position: absolute;
+  top: clamp(4%, 6vh, 11%);
+  z-index: 8;
+  max-width: min(34ch, 64%);
+  padding: 0.75rem 1.1rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(13, 7, 20, 0.62);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 44px rgba(4, 2, 10, 0.45);
+  animation: bubbleIn 280ms cubic-bezier(0.2, 0.9, 0.25, 1.1) both;
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  width: 16px;
+  height: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(13, 7, 20, 0.62);
+  transform: rotate(45deg);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.pedroBubble {
+  left: 5%;
+}
+
+.pedroBubble::after {
+  left: 22px;
+}
+
+.mabelBubble {
+  right: 5%;
+  text-align: right;
+}
+
+.mabelBubble::after {
+  right: 22px;
+}
+
+.speaker {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pedroBubble .speaker {
+  color: #a9d4ff;
+}
+
+.mabelBubble .speaker {
+  color: #ffb9e6;
+}
+
+.line {
+  margin: 0;
+  font-size: clamp(1.02rem, 0.9rem + 1vw, 1.55rem);
+  line-height: 1.3;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---------- indicadores ---------- */
+
+.hint,
+.indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.42rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(10, 5, 16, 0.45);
+  backdrop-filter: blur(6px);
+  font-size: clamp(0.72rem, 0.68rem + 0.2vw, 0.86rem);
+  letter-spacing: 0.08em;
+  color: rgba(255, 246, 253, 0.84);
+  pointer-events: none;
+}
+
+.hint {
+  bottom: clamp(14px, 3vh, 34px);
+  opacity: calc(1 - var(--p) * 1.4);
+  transition: opacity 400ms ease;
+}
+
+.indicator {
+  bottom: clamp(14px, 3vh, 34px);
+  animation: indicatorIn 500ms ease-out both;
+}
+
+.indicator::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffb9e6;
+  animation: pulse 1500ms ease-in-out infinite;
+}
+
+@keyframes indicatorIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+/* ---------- encerramento ---------- */
+
+.fragments {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.fragment {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  font-size: clamp(0.95rem, 0.85rem + 0.9vw, 1.5rem);
+  font-weight: 600;
+  color: rgba(255, 240, 252, 0.9);
+  text-shadow: 0 6px 20px rgba(4, 2, 10, 0.8);
+  white-space: nowrap;
+  opacity: 0;
+  animation: fragmentDrift 3200ms ease-out var(--delay) both;
+}
+
+@keyframes fragmentDrift {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 14px)) scale(0.96);
+  }
+  22% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  72% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 26px)) scale(1.02);
+  }
+}
+
+.finale {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+  background: #050308;
+  opacity: 0;
+  transition: opacity 1600ms ease;
+}
+
+.finale[data-visible="true"] {
+  opacity: 1;
+}
+
+.finaleLine {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(1.5rem, 1.1rem + 4.2vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: #f8eeff;
+  text-wrap: balance;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px
+  ;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- responsivo ---------- */
+
+@media (max-width: 760px) {
+  .cinematic {
+    --pedro-from: 12%;
+    --pedro-to: 40%;
+    --mabel-x: 76%;
+    --pedro-h: clamp(180px, 36vh, 320px);
+    --mabel-h: clamp(195px, 39vh, 340px);
+    --fg-h: clamp(95px, 16vh, 160px);
+  }
+
+  .bubble {
+    max-width: 78%;
+    top: 5vh;
+  }
+
+  .backdrop {
+    object-position: 52% 64%;
+  }
+}
+
+@media (max-width: 420px) {
+  .cinematic {
+    --pedro-to: 34%;
+    --mabel-x: 78%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .bubble,
+  .indicator,
+  .indicator::before,
+  .fragment {
+    animation: none;
+  }
+
+  .fragment {
+    opacity: 0.85;
+  }
+
+  .scene,
+  .finale {
+    transition-duration: 200ms;
+  }
+}
