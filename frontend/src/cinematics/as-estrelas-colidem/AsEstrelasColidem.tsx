@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import patio from "./assets/patio.webp";
 import pedroImage from "./assets/pedro.png";
 import mabelImage from "./assets/mabel.png";
-import { playBlip, startPatioAmbience } from "./audio";
+import { playBlip, resumeCinematicAudio, startPatioAmbience } from "./audio";
 import type { BlipKind } from "./audio";
 import { beats, FADE_FRAGMENTS, FINAL_LINE, OUTRO_INDEX, SPEAKER_NAMES } from "./content";
 import type { Speaker } from "./content";
@@ -157,6 +157,14 @@ export function AsEstrelasColidem({ onComplete, playSound = playBlip }: AsEstrel
     return () => window.clearTimeout(timer);
   }, []);
 
+  // O contexto é preparado sem autoplay; gestos podem desbloqueá-lo ou tentar novamente.
+  useEffect(() => {
+    const events = ["wheel", "touchstart", "pointerdown", "click", "keydown"] as const;
+    const unlock = () => resumeCinematicAudio();
+    events.forEach((event) => window.addEventListener(event, unlock, { passive: true, capture: true }));
+    return () => events.forEach((event) => window.removeEventListener(event, unlock, true));
+  }, []);
+
   // Ambiência do pátio: entra em fade durante a aproximação e silencia no encontro.
   useEffect(() => {
     if (phase !== "approach") {
@@ -276,7 +284,7 @@ export function AsEstrelasColidem({ onComplete, playSound = playBlip }: AsEstrel
     busyRef.current = true;
     guardRef.current = window.setTimeout(() => {
       busyRef.current = false;
-    }, CLICK_GUARD_MS);
+    }, beat.kind === "pause" ? PAUSE_SILENCE_MS : CLICK_GUARD_MS);
 
     // O som nasce do próprio gesto do usuário (política de autoplay) e nunca na pausa.
     if (beat.kind === "line") {
@@ -408,7 +416,7 @@ export function AsEstrelasColidem({ onComplete, playSound = playBlip }: AsEstrel
         />
 
         {/* Primeiro plano feito da própria fotografia: esconde os recortes dos PNGs. */}
-        <div className={styles.foreground} aria-hidden="true">
+        <div className={styles.foreground} data-testid="stars-collide-foreground" aria-hidden="true">
           <div className={styles.foregroundClip}>
             <div className={styles.foregroundPhoto} />
           </div>
@@ -446,7 +454,7 @@ export function AsEstrelasColidem({ onComplete, playSound = playBlip }: AsEstrel
           </p>
         ) : null}
 
-        {isInteractive && indicatorReady && !typewriter.isTyping && step < OUTRO_INDEX ? (
+        {isInteractive && revealed && indicatorReady && !typewriter.isTyping && step < OUTRO_INDEX ? (
           <p className={styles.indicator} data-testid="stars-collide-continue-hint">
             clique para continuar
           </p>

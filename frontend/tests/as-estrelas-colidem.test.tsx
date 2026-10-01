@@ -1,13 +1,17 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AsEstrelasColidem } from "../src/cinematics/as-estrelas-colidem/AsEstrelasColidem";
 import { FINAL_LINE } from "../src/cinematics/as-estrelas-colidem/content";
 import { motionPreference } from "./setup";
 
 const CLICK_GUARD_MS = 340;
+const PAUSE_SILENCE_MS = 1150;
+
+afterEach(() => vi.useRealTimers());
 
 function wait(ms: number) {
+  if (vi.isFakeTimers()) return act(() => vi.advanceTimersByTimeAsync(ms));
   return act(() => new Promise<void>((resolve) => setTimeout(resolve, ms)));
 }
 
@@ -78,6 +82,7 @@ describe("As estrelas colidem — diálogo por clique", () => {
   });
 
   it("cada clique avança exatamente um estado, com pausa própria e encerramento", async () => {
+    vi.useFakeTimers();
     const playSound = vi.fn();
     const { scene } = renderArrived(playSound);
 
@@ -94,6 +99,7 @@ describe("As estrelas colidem — diálogo por clique", () => {
     expect(screen.queryByTestId("stars-collide-line")).toBeNull();
     expect(screen.queryByText(/pausa/i)).toBeNull();
     const soundsBeforePause = playSound.mock.calls.length;
+    await wait(PAUSE_SILENCE_MS - CLICK_GUARD_MS);
 
     await click(scene);
     expect(screen.getByTestId("stars-collide-line").textContent).toBe(
@@ -225,18 +231,65 @@ describe("As estrelas colidem — fala datilografada", () => {
     await arriveByScroll();
 
     const scene = screen.getByTestId("stars-collide-scene");
-    // Fala longa: dá tempo de interromper a digitação.
-    for (const text of ["Oi", "Oi", "(pausa)", "Você gosta do Drummond?"]) {
-      fireEvent.click(scene);
-      await wait(360);
-      if (text !== "(pausa)") {
-        fireEvent.click(scene); // completa a digitação, se ainda estiver rolando
-        await wait(60);
-      }
-    }
+    vi.useFakeTimers();
+    await click(scene); // Pedro: Oi
+    await click(scene); // Mabel: Oi
+    fireEvent.click(scene); // pausa
+    await wait(PAUSE_SILENCE_MS);
+    fireEvent.click(scene); // fala longa
+    await wait(340); // guarda encerrada, texto ainda digitando
+    expect(screen.getByTestId("stars-collide-bubble").dataset.typing).toBe("true");
+    fireEvent.click(scene); // apenas completa
+    await wait(100); // intervalo cancelado não deve sobrescrever a fala completa
 
     expect(screen.getByTestId("stars-collide-line").textContent).toBe("Você gosta do Drummond?");
     expect(screen.getByTestId("stars-collide-bubble").dataset.typing).toBe("false");
     expect(screen.getByTestId("stars-collide-bubble").dataset.speaker).toBe("pedro");
+  });
+});
+
+
+describe("As estrelas colidem — pausa obrigatória", () => {
+  it.each(["click", "touch", "Enter", " "])("bloqueia %s antes de 1150 ms e exige novo gesto depois", async (gesture) => {
+    vi.useFakeTimers();
+    const { scene, playSound } = renderArrived();
+    await click(scene);
+    await click(scene);
+    fireEvent.click(scene); // entra em pause em t=0
+    const soundCount = playSound.mock.calls.length;
+    const interact = () => {
+      if (gesture === "click") fireEvent.click(scene);
+      else if (gesture === "touch") {
+        fireEvent.touchStart(scene);
+        fireEvent.touchEnd(scene);
+        fireEvent.click(scene); // clique sintetizado pelo navegador após o toque
+      } else fireEvent.keyDown(window, { key: gesture });
+    };
+
+    await wait(321); // guarda normal já teria terminado
+    interact();
+    expect(screen.queryByTestId("stars-collide-line")).toBeNull();
+    await wait(PAUSE_SILENCE_MS - 322);
+    interact(); // t=1149
+    expect(screen.queryByTestId("stars-collide-line")).toBeNull();
+    await wait(1); // t=1150: somente libera, não avança
+    expect(screen.queryByTestId("stars-collide-line")).toBeNull();
+    await wait(2000); // sem interação, segue na pausa
+    expect(screen.queryByTestId("stars-collide-line")).toBeNull();
+    expect(playSound).toHaveBeenCalledTimes(soundCount);
+    interact();
+    expect(screen.getByTestId("stars-collide-line").textContent).toBe("Você gosta do Drummond?");
+    expect(screen.getByTestId("stars-collide-bubble").dataset.speaker).toBe("pedro");
+  });
+
+  it("reduced-motion não mostra o indicador antes da revelação", async () => {
+    vi.useFakeTimers();
+    renderArrived();
+    await wait(900);
+    expect(screen.getByTestId("stars-collide-scene").dataset.revealed).toBe("false");
+    expect(screen.queryByTestId("stars-collide-continue-hint")).toBeNull();
+    await wait(200);
+    expect(screen.getByTestId("stars-collide-scene").dataset.revealed).toBe("true");
+    expect(screen.getByTestId("stars-collide-continue-hint")).toBeTruthy();
   });
 });

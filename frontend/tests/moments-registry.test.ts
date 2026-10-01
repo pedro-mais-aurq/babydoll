@@ -15,16 +15,16 @@ describe("registro de momentos", () => {
     );
   });
 
-  it("reserva a próxima lembrança no fim da linha do tempo, ainda fechada", () => {
+  it("coloca 'Sete de dezembro' como terceiro momento da linha do tempo", () => {
     const last = moments[moments.length - 1];
 
-    expect(last.id).toBe("next-memory");
-    expect(last.cinematic).toBeNull();
-    expect(isMomentReady(last)).toBe(false);
-    // As duas cinemáticas já gravadas continuam abríveis.
+    expect(last.id).toBe("sete-de-dezembro");
+    expect(last.title).toBe("Sete de dezembro");
+    expect(isMomentReady(last)).toBe(true);
     expect(moments.filter(isMomentReady).map((moment) => moment.id)).toEqual([
       "stars-collide",
       "first-day-five",
+      "sete-de-dezembro",
     ]);
   });
 
@@ -41,7 +41,7 @@ describe("registro de momentos", () => {
     expect(moments.map((moment) => moment.id)).toEqual([
       "stars-collide",
       "first-day-five",
-      "next-memory",
+      "sete-de-dezembro",
     ]);
   });
 });

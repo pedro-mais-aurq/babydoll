@@ -10,6 +10,7 @@ import type { Speaker } from "./content";
 type AudioContextCtor = typeof AudioContext;
 
 let context: AudioContext | null = null;
+let resuming = false;
 
 function resolveContextCtor(): AudioContextCtor | null {
   if (typeof window === "undefined") {
@@ -32,11 +33,25 @@ function getContext(): AudioContext | null {
 
   context ??= new Ctor();
 
-  if (context.state === "suspended") {
-    void context.resume();
+  return context;
+}
+
+/** Só retoma o contexto existente; não recria ambiência nem nós de áudio. */
+export function resumeCinematicAudio(): void {
+  if (!context || context.state !== "suspended" || resuming) {
+    return;
   }
 
-  return context;
+  try {
+    resuming = true;
+    void context.resume().catch(() => {
+      // Outra interação pode tentar novamente; a narrativa permanece independente.
+    }).finally(() => {
+      resuming = false;
+    });
+  } catch {
+    resuming = false;
+  }
 }
 
 /* ---------------------------------- blips --------------------------------- */

@@ -1,0 +1,402 @@
+/*
+ * C3 — "Sete de dezembro".
+ *
+ * Hierarquia visual: o plano de fundo, o ritmo e o scroll são do Babydoll; a
+ * interface da conversa é WhatsApp padrão (tema escuro) e não é redesenhada.
+ */
+
+.cinematic {
+  /* Curso de scroll: o dia inteiro cabe aqui dentro. */
+  --travel: 1500vh;
+  --sky-top: 43, 42, 74;
+  --sky-bottom: 107, 74, 90;
+  --sky-dim: 0.5;
+  --ending: 0;
+
+  position: relative;
+  width: 100%;
+  height: var(--travel);
+  /* `clip` e não `hidden`: hidden criaria scroll container e quebraria o sticky. */
+  overflow-x: clip;
+  background: #06080b;
+}
+
+.viewport {
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ------------------------- plano de fundo da C3 ------------------------- */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.backdropImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+  transform: scale(1.08);
+  filter: blur(7px) saturate(0.95);
+}
+
+/* A luz do dia avança com a conversa: manhã, tarde, dourado, noite. */
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--sky-top)) 0%,
+    rgb(var(--sky-bottom)) 100%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.92;
+  transition: background 700ms linear;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% 30%, transparent 30%, rgba(4, 6, 10, 0.6) 100%),
+    rgba(4, 6, 10, var(--sky-dim));
+  transition: background 700ms linear;
+}
+
+/* ---------------------- interface padrão do WhatsApp ---------------------- */
+
+.phone {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: min(430px, 100%);
+  height: min(94dvh, 860px);
+  overflow: hidden;
+  border-radius: 14px;
+  background: #0b141a;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+  font-family:
+    "Segoe UI", "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, Roboto, Arial,
+    sans-serif;
+  opacity: calc(1 - var(--ending) * 1.25);
+  transform: scale(calc(1 - var(--ending) * 0.04));
+  transition: opacity 180ms linear;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  background: #202c33;
+  color: #e9edef;
+}
+
+.backArrow {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  color: #aebac1;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.contactName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.headerIcons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  color: #aebac1;
+}
+
+.headerIcons svg {
+  width: 21px;
+  height: 21px;
+}
+
+.conversation {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b141a;
+}
+
+/*
+ * As mensagens ficam ancoradas na borda de baixo e crescem para cima: o excesso
+ * é cortado no topo, como quem acabou de chegar numa conversa.
+ */
+.messages {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px 7% 12px;
+  gap: 2px;
+}
+
+.dateChip {
+  align-self: center;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  background: #182229;
+  color: #8696a0;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.row {
+  display: flex;
+  animation: messageIn 220ms cubic-bezier(0.22, 0.9, 0.3, 1.05) both;
+}
+
+.row:not(.grouped) {
+  margin-top: 8px;
+}
+
+.in {
+  justify-content: flex-start;
+}
+
+.out {
+  justify-content: flex-end;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bubble {
+  position: relative;
+  max-width: 80%;
+  padding: 6px 9px 8px;
+  border-radius: 7.5px;
+  color: #e9edef;
+  font-size: 14.6px;
+  line-height: 19px;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+  word-wrap: break-word;
+}
+
+.in .bubble {
+  background: #202c33;
+  border-top-left-radius: 7.5px;
+}
+
+.out .bubble {
+  background: #005c4b;
+}
+
+.in .withTail {
+  border-top-left-radius: 0;
+}
+
+.out .withTail {
+  border-top-right-radius: 0;
+}
+
+/* Rabinho do balão, como no WhatsApp. */
+.withTail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 13px;
+}
+
+.in .withTail::before {
+  left: -8px;
+  background: #202c33;
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+}
+
+.out .withTail::before {
+  right: -8px;
+  background: #005c4b;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.text {
+  white-space: pre-wrap;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  float: right;
+  margin: 8px -4px -5px 8px;
+  height: 15px;
+  line-height: 15px;
+}
+
+.time {
+  color: rgba(233, 237, 239, 0.6);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ticks {
+  width: 16px;
+  height: 11px;
+  color: #53bdeb;
+}
+
+/* --------------------------- fotografia enviada --------------------------- */
+
+.mediaBubble {
+  width: min(250px, 62%);
+  padding: 3px;
+  overflow: hidden;
+}
+
+/* Proporção, conteúdo e orientação originais preservados: sem recorte. */
+.media {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 58dvh;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #0b141a;
+}
+
+.mediaMeta {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 5px;
+  border-radius: 9px;
+  background: rgba(11, 20, 26, 0.45);
+}
+
+/* ------------------------------- composer ------------------------------- */
+
+.composer {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 7px 10px 9px;
+  background: #111b21;
+}
+
+.inputPill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #2a3942;
+  color: #8696a0;
+}
+
+.composerIcon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.placeholder {
+  flex: 1 1 auto;
+  font-size: 15px;
+}
+
+/* ------------------------------ encerramento ------------------------------ */
+
+.endVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #05070a;
+  opacity: calc(var(--ending) * 1.15);
+  pointer-events: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------- responsivo ------------------------------- */
+
+@media (max-width: 520px) {
+  .phone {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .messages {
+    padding: 10px 9px 12px;
+  }
+
+  .bubble {
+    max-width: 84%;
+    font-size: 15px;
+  }
+
+  .mediaBubble {
+    width: min(230px, 68%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    animation: none;
+  }
+
+  .sky,
+  .scrim {
+    transition: none;
+  }
+}

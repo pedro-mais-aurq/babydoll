@@ -1,0 +1,110 @@
+name: CI and GitHub Pages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'production' }}
+  cancel-in-progress: true
+
+jobs:
+  ci-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DISABLE_VISUAL_EDITS: 'true'
+      DISABLE_EMERGENT_OVERLAY: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            tests/package-lock.json
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+      - name: Vitest
+        working-directory: frontend
+        run: npm run test
+      - name: Install E2E dependencies
+        working-directory: tests
+        run: npm ci
+      - name: Install Chromium
+        working-directory: tests
+        run: npx playwright install --with-deps chromium
+      - name: Playwright desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix frontend run dev -- --host 127.0.0.1 --port 3000 --strictPort > "$RUNNER_TEMP/vite.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in {1..60}; do
+            if curl --fail --silent http://localhost:3000/ > /dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat "$RUNNER_TEMP/vite.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            cat "$RUNNER_TEMP/vite.log"
+            exit 1
+          fi
+          cd tests
+          npx playwright test
+      - name: Determine Pages base path
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: |
+          if [[ "${REPOSITORY_NAME,,}" == *.github.io ]]; then
+            echo 'VITE_BASE_PATH=/' >> "$GITHUB_ENV"
+          else
+            echo "VITE_BASE_PATH=/$REPOSITORY_NAME/" >> "$GITHUB_ENV"
+          fi
+      - name: Production build and SPA fallback
+        working-directory: frontend
+        run: |
+          npm run build
+          test -f dist/index.html
+          cp dist/index.html dist/404.html
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: ci-build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

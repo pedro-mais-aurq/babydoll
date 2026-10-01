@@ -51,7 +51,7 @@ export const heartLayout: HeartCell[][] = [
     empty,
     decorative(17),
     decorative(18),
-    { type: "moment", momentId: "next-memory" },
+    { type: "moment", momentId: "sete-de-dezembro" },
     decorative(20),
     decorative(21),
     empty,
