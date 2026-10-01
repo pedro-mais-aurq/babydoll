@@ -15,6 +15,9 @@ export type ChatEvent =
 
 export const CONVERSATION_DATE = "7 de dezembro de 2025";
 
+/** Frase que encerra a cinemática, isolada depois do fade. */
+export const FINAL_LINE = "Eu estou orgulhoso de você";
+
 /** Nome do contato exatamente como aparece na conversa. */
 export const CONTACT_NAME = "Mabel \u{1F339}";
 

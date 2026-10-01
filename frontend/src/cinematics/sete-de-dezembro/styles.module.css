@@ -118,14 +118,29 @@
   object-position: 50% 30%;
 }
 
-.contactName {
+.contactBlock {
+  display: flex;
   flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.contactName {
   min-width: 0;
   overflow: hidden;
   font-size: 16px;
   font-weight: 400;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* Subtítulo padrão do header, no mesmo lugar do "online". */
+.typing {
+  color: #00a884;
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 
 .headerIcons {
@@ -287,6 +302,11 @@
   width: min(250px, 62%);
   padding: 3px;
   overflow: hidden;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Proporção, conteúdo e orientação originais preservados: sem recorte. */
@@ -344,6 +364,99 @@
 }
 
 /* ------------------------------ encerramento ------------------------------ */
+
+/* ------------------- fotografia em tela cheia (visualizador) ------------------- */
+
+.lightbox {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #0b141a;
+  animation: lightboxIn 200ms ease-out both;
+  cursor: zoom-out;
+}
+
+@keyframes lightboxIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lightboxBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: rgba(17, 27, 33, 0.92);
+  color: #e9edef;
+  font-family:
+    "Segoe UI", "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, Roboto, Arial,
+    sans-serif;
+}
+
+.lightboxBack {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #e9edef;
+  cursor: pointer;
+}
+
+.lightboxBack svg {
+  width: 24px;
+  height: 24px;
+}
+
+.lightboxName {
+  font-size: 16px;
+}
+
+.lightboxImage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+/* ------------------------------ encerramento ------------------------------ */
+
+.finale {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+  background: #05070a;
+  font-family: "Fredoka", system-ui, -apple-system, sans-serif;
+  opacity: 0;
+  transition: opacity 1300ms ease;
+}
+
+.finale[data-state="in"] {
+  opacity: 1;
+}
+
+.finaleLine {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(1.5rem, 1.1rem + 4.2vw, 3rem);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: #f4ecff;
+  text-wrap: balance;
+}
 
 .endVeil {
   position: absolute;

@@ -30,7 +30,7 @@ export const moments: Moment[] = [
   },
   {
     id: "sete-de-dezembro",
-    title: "Sete de dezembro",
+    title: "Pela primeira vez",
     cover: deDezembroCover,
     coverAlt: "Nós dois abraçados junto ao muro de tijolos",
     cinematic: SeteDeDezembro,

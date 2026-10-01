@@ -130,5 +130,102 @@ describe("C3 — interface do WhatsApp", () => {
     render(<SeteDeDezembro onComplete={vi.fn()} />);
 
     expect(screen.queryByTestId("sete-de-dezembro-photo")).toBeNull();
+    expect(screen.queryByTestId("sete-de-dezembro-typing")).toBeNull();
+    expect(screen.queryByTestId("sete-de-dezembro-finale")).toBeNull();
   });
+});
+
+describe("C3 — 'digitando...'", () => {
+  const burstIndex = mabelBurstStarts.findIndex(Boolean);
+
+  it("anuncia só rajadas de 2+ mensagens da Mabel", () => {
+    expect(burstIndex).toBeGreaterThan(0);
+
+    const burst = chat[burstIndex];
+    const next = chat[burstIndex + 1];
+
+    expect(burst.kind === "text" && burst.author).toBe("mabel");
+    expect(next.kind === "text" && next.author).toBe("mabel");
+    expect(chat[burstIndex - 1].author).not.toBe("mabel");
+  });
+
+  it("aparece no fim do silêncio anterior e some quando a rajada entra", () => {
+    const from = thresholds[burstIndex - 1];
+    const to = thresholds[burstIndex];
+
+    expect(isTyping(from + (to - from) * 0.1)).toBe(false);
+    expect(isTyping(from + (to - from) * 0.85)).toBe(true);
+    // Já revelada: quem falou não está mais digitando.
+    expect(isTyping(to)).toBe(false);
+  });
+
+  it("nunca anuncia uma mensagem do Pedro", () => {
+    chat.forEach((event, index) => {
+      if (mabelBurstStarts[index]) {
+        expect(event.kind === "text" && event.author).toBe("mabel");
+      }
+    });
+
+    const photoIndexLocal = chat.findIndex((event) => event.kind === "photo");
+    expect(mabelBurstStarts[photoIndexLocal]).toBe(false);
+    expect(mabelBurstStarts[photoIndexLocal + 1]).toBe(false);
+  });
+});
+
+describe("C3 — fotografia em tela cheia", () => {
+  it("abre e fecha pela barra superior, sem alterar a conversa", async () => {
+    render(<SeteDeDezembro onComplete={vi.fn()} />);
+
+    // Revela até a fotografia.
+    const photoIndexLocal = chat.findIndex((event) => event.kind === "photo");
+    await act(async () => {
+      Object.defineProperty(window, "scrollY", {
+        value: Math.ceil(thresholds[photoIndexLocal] * 10000),
+        configurable: true,
+      });
+    });
+
+    const trigger = await waitFor(() => {
+      fireEvent.scroll(window);
+      return screen.getByTestId("sete-de-dezembro-photo");
+    });
+
+    expect(screen.queryByTestId("sete-de-dezembro-lightbox")).toBeNull();
+
+    fireEvent.click(trigger);
+    const lightbox = screen.getByTestId("sete-de-dezembro-lightbox");
+    expect(lightbox.getAttribute("role")).toBe("dialog");
+    expect(lightbox.textContent).toContain(CONTACT_NAME);
+
+    fireEvent.click(screen.getByTestId("sete-de-dezembro-lightbox-close"));
+    expect(screen.queryByTestId("sete-de-dezembro-lightbox")).toBeNull();
+    // A fotografia continua no seu lugar dentro do chat.
+    expect(screen.getByTestId("sete-de-dezembro-photo")).toBeTruthy();
+  });
+});
+
+describe("C3 — encerramento", () => {
+  it("fecha com a frase final e volta sozinha, sem botão", async () => {
+    const onComplete = vi.fn();
+    render(<SeteDeDezembro onComplete={onComplete} />);
+
+    const root = screen.getByTestId("sete-de-dezembro-cinematic");
+    Object.defineProperty(root, "offsetHeight", { value: 12000, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+    root.getBoundingClientRect = () => ({ top: -11200 }) as DOMRect;
+    Object.defineProperty(window, "scrollY", { value: 11200, configurable: true });
+    fireEvent.scroll(window);
+
+    const finale = await waitFor(() => screen.getByTestId("sete-de-dezembro-finale"));
+    expect(finale.textContent).toBe(FINAL_LINE);
+    expect(FINAL_LINE).toBe("Eu estou orgulhoso de você");
+    expect(screen.queryByRole("button", { name: /voltar/i })).toBeNull();
+
+    // A frase fica isolada um tempo antes do retorno automático.
+    expect(onComplete).not.toHaveBeenCalled();
+    await act(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 4900));
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  }, 10000);
 });

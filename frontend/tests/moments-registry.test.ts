@@ -15,11 +15,11 @@ describe("registro de momentos", () => {
     );
   });
 
-  it("coloca 'Sete de dezembro' como terceiro momento da linha do tempo", () => {
+  it("coloca 'Pela primeira vez' como terceiro momento da linha do tempo", () => {
     const last = moments[moments.length - 1];
 
     expect(last.id).toBe("sete-de-dezembro");
-    expect(last.title).toBe("Sete de dezembro");
+    expect(last.title).toBe("Pela primeira vez");
     expect(isMomentReady(last)).toBe(true);
     expect(moments.filter(isMomentReady).map((moment) => moment.id)).toEqual([
       "stars-collide",

@@ -88,6 +88,39 @@ export function revealedCount(progress: number): number {
   return Math.max(count, 1);
 }
 
+/** Começos de rajada da Mabel: 2+ mensagens seguidas dela depois de outra voz. */
+export const mabelBurstStarts: boolean[] = chat.map((event, index) => {
+  if (event.kind !== "text" || event.author !== "mabel") {
+    return false;
+  }
+
+  const next = chat[index + 1];
+  const previous = chat[index - 1];
+
+  return next?.kind === "text" && next.author === "mabel" && previous?.author !== "mabel";
+});
+
+/**
+ * "digitando..." aparece no trecho final do silêncio que antecede uma rajada da
+ * Mabel — é o que se vê num chat real, do lado de quem está recebendo.
+ */
+export function isTyping(progress: number): boolean {
+  const next = revealedCount(progress);
+
+  if (next >= chat.length || !mabelBurstStarts[next]) {
+    return false;
+  }
+
+  const from = thresholds[next - 1] ?? 0;
+  const to = thresholds[next];
+
+  if (to <= from) {
+    return false;
+  }
+
+  return (progress - from) / (to - from) >= 0.55;
+}
+
 /**
  * Segundo do dia representado pelo último evento revelado. Durante o intervalo
  * presencial o valor é interpolado, então a luz do céu atravessa a tarde inteira

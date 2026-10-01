@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import background from "./assets/plano-de-fundo.jpg";
 import avatar from "./assets/mabel-perfil.jpg";
 import sentPhoto from "./assets/imagem-enviada.jpg";
-import { chat, CONTACT_NAME, CONVERSATION_DATE } from "./conversation";
+import { chat, CONTACT_NAME, CONVERSATION_DATE, FINAL_LINE } from "./conversation";
 import type { ChatEvent } from "./conversation";
-import { dayProgress, REVEAL_END, revealedCount } from "./pacing";
+import { dayProgress, isTyping, REVEAL_END, revealedCount } from "./pacing";
 import { skyAt } from "./sky";
 import styles from "./styles.module.css";
 
@@ -23,6 +23,9 @@ interface SeteDeDezembroProps {
 
 /** Quantas mensagens ficam montadas: o resto já saiu pela borda de cima. */
 const WINDOW_SIZE = 26;
+
+const FINALE_HOLD_MS = 3400;
+const FINALE_FADE_MS = 1300;
 
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
@@ -55,6 +58,9 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
   const rootRef = useRef<HTMLElement>(null);
   const [count, setCount] = useState(1);
   const [ending, setEnding] = useState(0);
+  const [typing, setTyping] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [finale, setFinale] = useState<"idle" | "in" | "out">("idle");
   const doneRef = useRef(false);
 
   useEffect(() => {
@@ -80,15 +86,17 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
       root.dataset.progress = progress.toFixed(4);
 
       setCount(revealedCount(progress));
+      setTyping(isTyping(progress));
 
       // Rabo final: depois da última mensagem a cena se despede sozinha.
       const tail = clamp01((progress - REVEAL_END) / (1 - REVEAL_END));
       setEnding(tail);
       root.style.setProperty("--ending", tail.toFixed(3));
 
-      if (tail >= 0.999 && !doneRef.current) {
+      // No fim do fade a frase final entra sozinha e a cena se encerra.
+      if (tail >= 0.995 && !doneRef.current) {
         doneRef.current = true;
-        onComplete();
+        setFinale("in");
       }
     };
 
@@ -112,6 +120,53 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
     };
   }, [onComplete]);
 
+  // Nem a fotografia aberta nem o encerramento devem ser atravessados por scroll.
+  useEffect(() => {
+    if (!photoOpen && finale === "idle") {
+      return undefined;
+    }
+
+    const block = (event: Event) => event.preventDefault();
+
+    window.addEventListener("wheel", block, { passive: false });
+    window.addEventListener("touchmove", block, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", block);
+      window.removeEventListener("touchmove", block);
+    };
+  }, [finale, photoOpen]);
+
+  useEffect(() => {
+    if (finale !== "in") {
+      return undefined;
+    }
+
+    const timers = [
+      window.setTimeout(() => setFinale("out"), FINALE_HOLD_MS),
+      window.setTimeout(onComplete, FINALE_HOLD_MS + FINALE_FADE_MS),
+    ];
+
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [finale, onComplete]);
+
+  // Esc fecha a fotografia, como qualquer visualizador.
+  useEffect(() => {
+    if (!photoOpen) {
+      return undefined;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPhotoOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [photoOpen]);
+
   const start = Math.max(count - WINDOW_SIZE, 0);
   const visible: { event: ChatEvent; index: number }[] = [];
 
@@ -125,9 +180,9 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
       className={styles.cinematic}
       data-progress="0"
       data-testid="sete-de-dezembro-cinematic"
-      aria-label="Sete de dezembro"
+      aria-label="Pela primeira vez"
     >
-      <h1 className={styles.srOnly}>Sete de dezembro</h1>
+      <h1 className={styles.srOnly}>Pela primeira vez</h1>
 
       <div className={styles.viewport}>
         {/* Plano de fundo próprio da cinemática: a luz do dia atravessa a conversa. */}
@@ -151,8 +206,15 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
               />
             </svg>
             <img className={styles.avatar} src={avatar} alt="" draggable="false" />
-            <span className={styles.contactName} data-testid="sete-de-dezembro-contact">
-              {CONTACT_NAME}
+            <span className={styles.contactBlock}>
+              <span className={styles.contactName} data-testid="sete-de-dezembro-contact">
+                {CONTACT_NAME}
+              </span>
+              {typing ? (
+                <span className={styles.typing} data-testid="sete-de-dezembro-typing">
+                  digitando...
+                </span>
+              ) : null}
             </span>
             <div className={styles.headerIcons} aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -200,11 +262,14 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
                       key={index}
                       className={`${styles.row} ${side} ${grouped ? styles.grouped : ""}`}
                     >
-                      <div
+                      <button
+                        type="button"
                         className={`${styles.bubble} ${styles.mediaBubble} ${
                           grouped ? "" : styles.withTail
                         }`}
                         data-testid="sete-de-dezembro-photo"
+                        onClick={() => setPhotoOpen(true)}
+                        aria-label="Abrir a fotografia enviada"
                       >
                         <img
                           className={styles.media}
@@ -217,7 +282,7 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
                         <span className={styles.mediaMeta} aria-hidden="true">
                           <Ticks />
                         </span>
-                      </div>
+                      </button>
                     </div>
                   );
                 }
@@ -282,6 +347,58 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
         </div>
 
         {ending > 0.02 ? <div className={styles.endVeil} aria-hidden="true" /> : null}
+
+        {photoOpen ? (
+          <div
+            className={styles.lightbox}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Fotografia enviada na conversa"
+            data-testid="sete-de-dezembro-lightbox"
+            onClick={() => setPhotoOpen(false)}
+          >
+            <header className={styles.lightboxBar}>
+              <button
+                type="button"
+                className={styles.lightboxBack}
+                data-testid="sete-de-dezembro-lightbox-close"
+                aria-label="Voltar para a conversa"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPhotoOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M15 5l-7 7 7 7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              <span className={styles.lightboxName}>{CONTACT_NAME}</span>
+            </header>
+            <img
+              className={styles.lightboxImage}
+              src={sentPhoto}
+              alt="Fotografia enviada na conversa: Pedro e Mabel juntos"
+              draggable="false"
+            />
+          </div>
+        ) : null}
+
+        {finale !== "idle" ? (
+          <div
+            className={styles.finale}
+            data-state={finale}
+            data-testid="sete-de-dezembro-finale"
+          >
+            <p className={styles.finaleLine}>{FINAL_LINE}</p>
+          </div>
+        ) : null}
       </div>
     </article>
   );
