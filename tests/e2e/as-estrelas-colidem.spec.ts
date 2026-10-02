@@ -82,6 +82,8 @@ test('C2 mantém composição, diálogo e interação em desktop e mobile', asyn
     await interact();
     if (speaker === 'pause') {
       await expect(bubble).toHaveCount(0);
+      // Aguarda o indicador anterior sair antes de aceitar o indicador pós-pausa.
+      await expect(hint).toBeHidden();
       await expect(hint).toBeVisible();
       await expect(bubble).toHaveCount(0); // timer não avança sozinho
       continue;
