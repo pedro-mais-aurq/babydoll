@@ -26,6 +26,7 @@ const WINDOW_SIZE = 26;
 
 const FINALE_HOLD_MS = 3400;
 const FINALE_FADE_MS = 1300;
+const SCROLL_END_TOLERANCE_PX = 8;
 
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
@@ -62,6 +63,7 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
   const [photoOpen, setPhotoOpen] = useState(false);
   const [finale, setFinale] = useState<"idle" | "in" | "out">("idle");
   const doneRef = useRef(false);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -94,7 +96,8 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
       root.style.setProperty("--ending", tail.toFixed(3));
 
       // No fim do fade a frase final entra sozinha e a cena se encerra.
-      if (tail >= 0.995 && !doneRef.current) {
+      const remaining = travel - (window.scrollY - top);
+      if ((tail >= 0.995 || (progress >= REVEAL_END && remaining <= SCROLL_END_TOLERANCE_PX)) && !doneRef.current) {
         doneRef.current = true;
         setFinale("in");
       }
@@ -118,7 +121,7 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [onComplete]);
+  }, []);
 
   // Nem a fotografia aberta nem o encerramento devem ser atravessados por scroll.
   useEffect(() => {
@@ -127,27 +130,39 @@ export function SeteDeDezembro({ onComplete }: SeteDeDezembroProps) {
     }
 
     const block = (event: Event) => event.preventDefault();
+    const blockKey = (event: KeyboardEvent) => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) {
+        event.preventDefault();
+      }
+    };
 
+    window.addEventListener("keydown", blockKey);
     window.addEventListener("wheel", block, { passive: false });
     window.addEventListener("touchmove", block, { passive: false });
 
     return () => {
+      window.removeEventListener("keydown", blockKey);
       window.removeEventListener("wheel", block);
       window.removeEventListener("touchmove", block);
     };
   }, [finale, photoOpen]);
 
   useEffect(() => {
-    if (finale !== "in") {
+    if (finale === "idle") {
       return undefined;
     }
 
-    const timers = [
-      window.setTimeout(() => setFinale("out"), FINALE_HOLD_MS),
-      window.setTimeout(onComplete, FINALE_HOLD_MS + FINALE_FADE_MS),
-    ];
+    // Cada fase mantém apenas o seu timer: o cleanup de "in" não cancela a saída.
+    const timer = window.setTimeout(() => {
+      if (finale === "in") {
+        setFinale("out");
+      } else if (!completedRef.current) {
+        completedRef.current = true;
+        onComplete();
+      }
+    }, finale === "in" ? FINALE_HOLD_MS : FINALE_FADE_MS);
 
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
+    return () => window.clearTimeout(timer);
   }, [finale, onComplete]);
 
   // Esc fecha a fotografia, como qualquer visualizador.

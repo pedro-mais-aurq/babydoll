@@ -1,10 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { StrictMode } from "react";
+import { BrowserRouter } from "react-router-dom";
+import App from "../src/App";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SeteDeDezembro } from "../src/cinematics/sete-de-dezembro/SeteDeDezembro";
-import { chat, CONTACT_NAME } from "../src/cinematics/sete-de-dezembro/conversation";
+import { chat, CONTACT_NAME, FINAL_LINE } from "../src/cinematics/sete-de-dezembro/conversation";
 import type { ChatEvent } from "../src/cinematics/sete-de-dezembro/conversation";
 import {
+  isTyping,
+  mabelBurstStarts,
   clockSeconds,
   dayProgress,
   revealedCount,
@@ -172,60 +177,107 @@ describe("C3 — 'digitando...'", () => {
   });
 });
 
-describe("C3 — fotografia em tela cheia", () => {
-  it("abre e fecha pela barra superior, sem alterar a conversa", async () => {
-    render(<SeteDeDezembro onComplete={vi.fn()} />);
+// Geometria local explícita: jsdom não calcula altura nem posição de scroll.
+function scrollToPosition(position: number) {
+  const root = screen.getByTestId("sete-de-dezembro-cinematic");
+  Object.defineProperty(root, "offsetHeight", { value: 10800, configurable: true });
+  vi.spyOn(root, "getBoundingClientRect").mockImplementation(() => ({ top: -window.scrollY }) as DOMRect);
+  vi.stubGlobal("innerHeight", 800);
+  vi.stubGlobal("scrollY", position);
+  fireEvent.scroll(window);
+  act(() => vi.advanceTimersToNextFrame());
+}
 
-    // Revela até a fotografia.
-    const photoIndexLocal = chat.findIndex((event) => event.kind === "photo");
-    await act(async () => {
-      Object.defineProperty(window, "scrollY", {
-        value: Math.ceil(thresholds[photoIndexLocal] * 10000),
-        configurable: true,
-      });
-    });
+const scrollKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End", " "];
+function expectKeyboardBlocked(blocked: boolean) {
+  for (const key of scrollKeys) {
+    expect(fireEvent.keyDown(window, { key })).toBe(!blocked);
+  }
+}
 
-    const trigger = await waitFor(() => {
-      fireEvent.scroll(window);
-      return screen.getByTestId("sete-de-dezembro-photo");
-    });
-
-    expect(screen.queryByTestId("sete-de-dezembro-lightbox")).toBeNull();
-
-    fireEvent.click(trigger);
-    const lightbox = screen.getByTestId("sete-de-dezembro-lightbox");
-    expect(lightbox.getAttribute("role")).toBe("dialog");
-    expect(lightbox.textContent).toContain(CONTACT_NAME);
-
-    fireEvent.click(screen.getByTestId("sete-de-dezembro-lightbox-close"));
-    expect(screen.queryByTestId("sete-de-dezembro-lightbox")).toBeNull();
-    // A fotografia continua no seu lugar dentro do chat.
-    expect(screen.getByTestId("sete-de-dezembro-photo")).toBeTruthy();
+describe("C3 — fotografia e encerramento", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal("scrollY", 0);
   });
-});
 
-describe("C3 — encerramento", () => {
-  it("fecha com a frase final e volta sozinha, sem botão", async () => {
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("bloqueia scroll na fotografia e libera ao fechar pela barra ou Escape", () => {
+    render(<SeteDeDezembro onComplete={vi.fn()} />);
+    scrollToPosition(Math.ceil(thresholds[photoIndex] * 10000));
+    const trigger = screen.getByTestId("sete-de-dezembro-photo");
+    expectKeyboardBlocked(false);
+    fireEvent.click(trigger);
+    expect(screen.getByRole("dialog").textContent).toContain(CONTACT_NAME);
+    expectKeyboardBlocked(true);
+    expect(fireEvent.wheel(window)).toBe(false);
+    expect(fireEvent.touchMove(window)).toBe(false);
+    fireEvent.click(screen.getByTestId("sete-de-dezembro-lightbox-close"));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expectKeyboardBlocked(false);
+    fireEvent.click(trigger);
+    expect(fireEvent.keyDown(window, { key: "Escape" })).toBe(true);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByTestId("sete-de-dezembro-photo")).toBe(trigger);
+    expectKeyboardBlocked(false);
+  });
+
+  it("tolera 8 px restantes, mantém a frase, faz fade e completa uma única vez", () => {
     const onComplete = vi.fn();
     render(<SeteDeDezembro onComplete={onComplete} />);
-
-    const root = screen.getByTestId("sete-de-dezembro-cinematic");
-    Object.defineProperty(root, "offsetHeight", { value: 12000, configurable: true });
-    Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
-    root.getBoundingClientRect = () => ({ top: -11200 }) as DOMRect;
-    Object.defineProperty(window, "scrollY", { value: 11200, configurable: true });
-    fireEvent.scroll(window);
-
-    const finale = await waitFor(() => screen.getByTestId("sete-de-dezembro-finale"));
+    scrollToPosition(9980);
+    expect(screen.queryByTestId("sete-de-dezembro-finale")).toBeNull();
+    scrollToPosition(9992);
+    const finale = screen.getByTestId("sete-de-dezembro-finale");
     expect(finale.textContent).toBe(FINAL_LINE);
-    expect(FINAL_LINE).toBe("Eu estou orgulhoso de você");
-    expect(screen.queryByRole("button", { name: /voltar/i })).toBeNull();
-
-    // A frase fica isolada um tempo antes do retorno automático.
+    expect(finale.dataset.state).toBe("in");
+    expectKeyboardBlocked(true);
+    act(() => vi.advanceTimersByTime(3399));
+    expect(finale.dataset.state).toBe("in");
     expect(onComplete).not.toHaveBeenCalled();
-    await act(async () => {
-      await new Promise<void>((resolve) => setTimeout(resolve, 4900));
-    });
+    act(() => vi.advanceTimersByTime(1));
+    expect(finale.dataset.state).toBe("out");
+    expect(onComplete).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1299));
+    expect(onComplete).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
     expect(onComplete).toHaveBeenCalledTimes(1);
-  }, 10000);
+    fireEvent.scroll(window);
+    fireEvent.resize(window);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("retorna ao coração em /moments pelo roteamento real, sob StrictMode", () => {
+    window.history.replaceState({}, "", "/moments/sete-de-dezembro");
+    render(<StrictMode><BrowserRouter><App /></BrowserRouter></StrictMode>);
+    scrollToPosition(9994);
+    expect(screen.getByTestId("sete-de-dezembro-finale").dataset.state).toBe("in");
+    act(() => vi.advanceTimersByTime(3400));
+    expect(screen.getByTestId("sete-de-dezembro-finale").dataset.state).toBe("out");
+    expect(window.location.pathname).toBe("/moments/sete-de-dezembro");
+    act(() => vi.advanceTimersByTime(1300));
+    expect(window.location.pathname).toBe("/moments");
+    expect(screen.getByText("nossos momentos")).toBeTruthy();
+    expect(screen.queryByTestId("sete-de-dezembro-cinematic")).toBeNull();
+    expectKeyboardBlocked(false);
+  });
+
+  it.each(["in", "out"])("cancela o retorno se desmontar durante %s", (phase) => {
+    const onComplete = vi.fn();
+    const { unmount } = render(<SeteDeDezembro onComplete={onComplete} />);
+    scrollToPosition(10000);
+    if (phase === "out") act(() => vi.advanceTimersByTime(3400));
+    unmount();
+    act(() => vi.advanceTimersByTime(10000));
+    expect(onComplete).not.toHaveBeenCalled();
+    expectKeyboardBlocked(false);
+  });
 });

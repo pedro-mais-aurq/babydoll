@@ -9,7 +9,7 @@ for (const route of ['/', '/moments', '/moments/first-day-five', '/moments/sete-
         ? page.getByText('nossos momentos', { exact: true })
         : route.endsWith('first-day-five')
           ? page.getByRole('article', { name: 'Quando nos entrelaçamos' })
-          : page.getByTestId('moment-reserved');
+          : page.getByTestId('sete-de-dezembro-cinematic');
     await expect(mounted).toBeVisible();
     await page.reload();
     await expect(mounted).toBeVisible();
